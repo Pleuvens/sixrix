@@ -95,6 +95,7 @@ int nb_obs)
 
 int main()
 {
+	//-1 if no link
 	int nb_states = 2;
 	//Test Pluie Soleil
 	int nb_obs = 2;	
