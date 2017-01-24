@@ -60,7 +60,7 @@ int is_e_valid(struct automate *aut)
 }
 
 struct automate* make_automate(char **states, double *proba_init, double *A, int nb_states, 
-int nb_obs)
+		int nb_obs)
 {
 	struct automate *aut = malloc(sizeof(struct automate));
 	aut->nb_states = nb_states;
@@ -93,6 +93,31 @@ int nb_obs)
 	return aut;
 }
 
+double forward_recursion(struct automate *aut, struct state *init_state)
+{
+	double *tab = calloc(aut->nb_states,sizeof(double));
+	for(int i = 0; i < aut->nb_states; ++i)
+	{
+		tab[i] = aut->states[i].p_init * b(Oi)
+	}
+	/*
+	for(int x = 1; i < aut->nb_obs; ++x)
+	{
+		double *tabsub = calloc(aut->nb_states,sizeof(double));
+		for(int y = 0; y < aut->aut->nb_states; ++y)
+		{
+			for(int z = 0; z < aut->nb_states; ++z)
+			{
+				tabsub[y] += tab[z] * a[z][x];
+			}
+		}
+		free(tab);
+		tab = tabsub;
+	}
+	*/
+	return 1.0;
+}
+
 int main()
 {
 	//-1 if no link
@@ -102,17 +127,17 @@ int main()
 	//SET TRAMSITION PROBA
 	char *states[] = {"Soleil","Pluie"};
 	double proba_init[] = {0.6,0.4};
-	
+
 	double A[] = {0.8,0.2,0.7,0.3};
 	//double B[] = {};
 
 	struct automate *aut = make_automate(states, proba_init, A, nb_states,nb_obs);
-	
+
 	int is_p = is_p_init_valid(aut);
 	int is_t = is_t_valid(aut);
 	int is_e = is_e_valid(aut);
 
 	printf("is_p: %d\nis_t: %d\nis_e: %d\n",is_p,is_t,is_e);
-	
+
 	return 0;	
 }
