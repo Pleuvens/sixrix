@@ -93,29 +93,37 @@ struct automate* make_automate(char **states, double *proba_init, double *A, int
 	return aut;
 }
 
-double forward_recursion(struct automate *aut, struct state *init_state)
+double forward_recursion(struct automate *aut, struct state *init_state, char *name)
 {
 	double *tab = calloc(aut->nb_states,sizeof(double));
 	for(int i = 0; i < aut->nb_states; ++i)
 	{
-		tab[i] = aut->states[i].p_init * b(Oi)
+		for(int k = 0; k < aut->nb_states; ++j)
+		{
+			//IF Oi = b[k].item1
+			tab[i] = aut->states[i].p_init * aut->states[i].b[k].item2;
+		}
 	}
-	/*
+	
 	for(int x = 1; i < aut->nb_obs; ++x)
 	{
 		double *tabsub = calloc(aut->nb_states,sizeof(double));
-		for(int y = 0; y < aut->aut->nb_states; ++y)
+		for(int y = 0; y < aut->nb_states; ++y)
 		{
 			for(int z = 0; z < aut->nb_states; ++z)
 			{
-				tabsub[y] += tab[z] * a[z][x];
+				tabsub[y] += tab[z] * aut->states[z].a[x].item2; //a[z][x];
 			}
 		}
 		free(tab);
 		tab = tabsub;
 	}
-	*/
-	return 1.0;
+	double res = 0;
+	for(int i = 0; i < aut->nb_states; ++i)
+	{
+		res += tab[i];
+	}
+	return res;
 }
 
 int main()
