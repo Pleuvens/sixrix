@@ -1,9 +1,9 @@
 #Makefile
 CC=gcc
 CPPFLAGS= -MMD -D_XOPEN_SOURCE=500
-CFLAGS= -Wall -Wextra -std=c99 -g
+CFLAGS= -Wall -Wextra -std=c99 -g -lm
 LDFLAGS=
-LDLIBS=
+LDLIBS=-lm
 
 
 SRC= hanning.c
