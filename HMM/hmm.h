@@ -16,6 +16,7 @@ struct state {
 struct automate {
 	int nb_states;
 	int nb_obs;
+	int nb_k;
 	struct state *states;	
 };
 

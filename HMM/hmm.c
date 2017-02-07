@@ -59,20 +59,22 @@ int is_e_valid(struct automate *aut)
 	return 0;
 }
 
-struct automate* make_automate(char **states, double *proba_init, double *A, int nb_states, 
-		int nb_obs)
+struct automate* make_automate(char **states, char **k_name, double *proba_init, 
+		double *A,double *B, int nb_states, int nb_obs, int nb_k)
 {
 	struct automate *aut = malloc(sizeof(struct automate));
 	aut->nb_states = nb_states;
 	aut->nb_obs = nb_obs;
+	aut->nb_k = nb_k;
 	aut->states = malloc(nb_states * sizeof(struct state));
+	int t_index = 0;
 	for(int i = 0; i < nb_states; ++i)
 	{
 		aut->states[i].name = states[i];
 		aut->states[i].p_init = proba_init[i];
 		aut->states[i].a = malloc(nb_states * sizeof(struct tuple));
-		aut->states[i].b = malloc(nb_obs * sizeof(struct tuple));
-		int t_index = 0;
+		aut->states[i].b = malloc(nb_k * sizeof(struct tuple));
+		t_index = i * nb_states;
 		for(int k = 0; k < nb_states; ++k)
 		{
 			aut->states[i].a[k].item1 = calloc(strlen(states[k]),sizeof(char));
@@ -81,48 +83,65 @@ struct automate* make_automate(char **states, double *proba_init, double *A, int
 			*((double*)aut->states[i].a[k].item2) = A[t_index];
 			++t_index;
 		}
-		for(int k = 0; k < nb_obs; ++k)
+		t_index = i * nb_k;
+		for(int k = 0; k < nb_k; ++k)
 		{
-			aut->states[i].b[k].item1 = calloc(strlen(states[k]),sizeof(char));
+			aut->states[i].b[k].item1 = calloc(strlen(k_name[k]),sizeof(char));
 			aut->states[i].b[k].item2 = calloc(1,sizeof(double));
-			strncpy(aut->states[i].b[k].item1,states[k],strlen(states[k]));
-			*((double*)aut->states[i].b[k].item2) = A[t_index];
+			strncpy(aut->states[i].b[k].item1,k_name[k],strlen(k_name[k]));
+			*((double*)aut->states[i].b[k].item2) = B[t_index];
 			++t_index;
 		}
 	}
 	return aut;
 }
 
-double forward_recursion(struct automate *aut, struct state *init_state, char *name)
+double forward_recursion(struct automate *aut, char **states, char **obs)
 {
 	double *tab = calloc(aut->nb_states,sizeof(double));
-	for(int i = 0; i < aut->nb_states; ++i)
+	double res = 0;
+	for(int n = 0; n < aut->nb_obs; ++n)
 	{
-		for(int k = 0; k < aut->nb_states; ++j)
+		if(!n)
 		{
-			//IF Oi = b[k].item1
-			tab[i] = aut->states[i].p_init * aut->states[i].b[k].item2;
-		}
-	}
-	
-	for(int x = 1; i < aut->nb_obs; ++x)
-	{
-		double *tabsub = calloc(aut->nb_states,sizeof(double));
-		for(int y = 0; y < aut->nb_states; ++y)
-		{
-			for(int z = 0; z < aut->nb_states; ++z)
+			for(int i = 0; i < aut->nb_states; ++i)
 			{
-				tabsub[y] += tab[z] * aut->states[z].a[x].item2; //a[z][x];
+				for(int k = 0; k < aut->nb_k; ++k)
+				{
+					if(!strcmp(states[n],aut->states[i].name) && 
+							!strcmp(aut->states[i].b[k].item1,obs[n]))
+					{
+						tab[i] = aut->states[i].p_init * *(double *)(aut->states[i].b[k].item2);
+					} 
+				}
 			}
 		}
-		free(tab);
-		tab = tabsub;
+
+		for(int x = 1; x < aut->nb_states; ++x)
+		{
+			double *tabsub = calloc(aut->nb_states,sizeof(double));
+			for(int y = 0; y < aut->nb_states; ++y)
+			{
+				for(int z = 0; z < aut->nb_states; ++z)
+				{
+					tabsub[y] += tab[z] * *(double*)(aut->states[z].a[x].item2); //a[z][x];
+				}
+			}
+			free(tab);
+			tab = tabsub;
+		}
+		for(int i = 0; i < aut->nb_states; ++i)
+		{
+			for(int v = 0; v < aut->nb_k; v++)
+			{
+				if(!strcmp(obs[n],aut->states[i].b[v].item1))
+				{
+					res += tab[i] * *(double*)(aut->states[i].b[v].item2);
+				}
+			}
+		}
 	}
-	double res = 0;
-	for(int i = 0; i < aut->nb_states; ++i)
-	{
-		res += tab[i];
-	}
+
 	return res;
 }
 
@@ -131,21 +150,31 @@ int main()
 	//-1 if no link
 	int nb_states = 2;
 	//Test Pluie Soleil
-	int nb_obs = 2;	
+	int nb_obs = 5;	
+	int nb_k = 2;
 	//SET TRAMSITION PROBA
 	char *states[] = {"Soleil","Pluie"};
 	double proba_init[] = {0.6,0.4};
 
-	double A[] = {0.8,0.2,0.7,0.3};
-	//double B[] = {};
+	char *obj[] = {"13","21"};
 
-	struct automate *aut = make_automate(states, proba_init, A, nb_states,nb_obs);
+	char *obs[] = {"13","21","13","13","21"};
+	char *test_states[] = {"Soleil","Pluie","Pluie","Pluie","Soleil"};
+
+
+	double A[] = {0.8,0.2,0.7,0.3};
+	double B[] = {0.4,0.6,0.9,0.1};
+
+	struct automate *aut = make_automate(states, obj, proba_init, A, B, nb_states,nb_obs, nb_k);
 
 	int is_p = is_p_init_valid(aut);
 	int is_t = is_t_valid(aut);
 	int is_e = is_e_valid(aut);
 
 	printf("is_p: %d\nis_t: %d\nis_e: %d\n",is_p,is_t,is_e);
+
+	double res = forward_recursion(aut,test_states,obs);
+	printf("res: %f\n",res);
 
 	return 0;	
 }
