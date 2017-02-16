@@ -47,7 +47,7 @@ int is_e_valid(struct automate *aut)
 	double sum = 0;
 	for(int i = 0; i < aut->nb_states; ++i)
 	{
-		for(int j = 0; j < aut->nb_states; ++j)
+		for(int j = 0; j < aut->nb_k; ++j)
 		{
 			sum += *((double *)aut->states[i].b[j].item2);
 		}
@@ -145,8 +145,65 @@ double forward_recursion(struct automate *aut, char **states, char **obs)
 	return res;
 }
 
+struct state* search_state(struct automate *aut, char *name)
+{
+	for(int i = 0; i < aut->nb_states; ++i)
+	{
+		if(!strcmp(aut->states[i].name,name))
+		{
+			return &aut->states[i];
+		}
+	}
+	return NULL;
+}
+
+double get_obs_prob(struct state *s, char *name, int nb_k)
+{
+	for(int i = 0; i < nb_k; ++i)
+	{
+		if(!strcmp(s->b[i].item1,name))
+		{
+			return *((double*)(s->b[i].item2));
+		}
+	}
+	return 0;
+}
+
+double get_trans_prob(struct state *s, char *name, int nb_states)
+{
+	for(int i = 0; i < nb_states; ++i)
+	{
+		if(!strcmp(s->a[i].item1,name))
+		{
+			return *((double*)(s->a[i].item2));
+		}
+	}
+	return 0;
+}
+
+double compute(struct automate *aut, char **states, char **obs, int len)
+{
+	double result = 0;
+	struct state *cur_state = search_state(aut,*states);
+	result = cur_state->p_init * get_obs_prob(cur_state,*obs,aut->nb_obs);
+	//printf("%f %f ", cur_state->p_init, get_obs_prob(cur_state,*obs,aut->nb_obs));
+	double t_proba = get_trans_prob(cur_state,states[1],aut->nb_states);
+	for(int i = 1; i < len; ++i)
+	{
+		cur_state = search_state(aut,states[i]);
+		result *= t_proba * get_obs_prob(cur_state,obs[i],aut->nb_obs);
+		//printf("%f %f ", t_proba, get_obs_prob(cur_state,obs[i],aut->nb_obs));
+		if(i < len-1)
+		{
+			t_proba = get_trans_prob(cur_state,states[i+1],aut->nb_states);
+		}
+	}
+	return result;
+}
+
 int main()
 {
+	/* TEST 1
 	//-1 if no link
 	int nb_states = 2;
 	//Test Pluie Soleil
@@ -166,14 +223,34 @@ int main()
 	double B[] = {0.4,0.6,0.9,0.1};
 
 	struct automate *aut = make_automate(states, obj, proba_init, A, B, nb_states,nb_obs, nb_k);
+	*/
+	/* TEST 2 */
+	int nb_states = 2;
+	//Test Pluie Soleil
+	int nb_obs = 4;	
+	int nb_k = 3;
+	//SET TRAMSITION PROBA
+	char *states[] = {"Hot","Cold"};
+	double proba_init[] = {0.6,0.4};
 
+	char *obj[] = {"S","M","L"};
+
+	char *obs[] = {"S","M","S","L"};
+	char *test_states[] = {"Hot","Hot","Cold","Cold"};
+
+
+	double A[] = {0.7,0.3,0.4,0.6};
+	double B[] = {0.1,0.4,0.5,0.7,0.2,0.1};
+
+	struct automate *aut = make_automate(states, obj, proba_init, A, B, nb_states,nb_obs, nb_k);
+	
 	int is_p = is_p_init_valid(aut);
 	int is_t = is_t_valid(aut);
 	int is_e = is_e_valid(aut);
 
 	printf("is_p: %d\nis_t: %d\nis_e: %d\n",is_p,is_t,is_e);
 
-	double res = forward_recursion(aut,test_states,obs);
+	double res = compute(aut,test_states,obs, nb_obs);
 	printf("res: %f\n",res);
 
 	return 0;	
