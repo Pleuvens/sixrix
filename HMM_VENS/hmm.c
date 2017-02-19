@@ -214,21 +214,25 @@ double forward_recursion(struct automate *aut, char **states, char **obs)
 	/* RECURSION */
 	for(int k = 1; k < aut->nb_obs; ++k)
 	{
-		double val = 0;
 		alpha[k] = calloc(aut->nb_states,sizeof(double));
 		for(int j = 0; j < aut->nb_states; ++j)
 		{
+			double val = 0;
 			for(int i = 0; i < aut->nb_states; ++i)
 			{
 				cur = search_state(aut,states[i]);
 				val += alpha[k-1][i] * get_trans_prob(cur,states[j],aut->nb_states);
 			}
 			cur = search_state(aut,states[j]);
-			val = val * get_obs_prob(cur, obs[k], aut->nb_obs);
+			alpha[k][j] = val * get_obs_prob(cur, obs[k], aut->nb_obs);
 		}
 		free(alpha[k-1]);
-		res += val; /* END */
 	}
+	for(int i = 0; i < aut->nb_states; ++i)
+	{
+		res += alpha[aut->nb_obs-1][i];
+	}
+	free(alpha[aut->nb_obs-1]);
 	/*
 	for(int j = aut->nb_states-1; j > -1; --j)
 	{
@@ -248,19 +252,44 @@ double backward_recursion(struct automate *aut, char **states, char **obs)
 {
 	double res = 1;
 	struct state *cur = NULL;
-	for(int k = aut->nb_obs-1; k > -1; --k)
+	double **beta = calloc(sizeof(double*),aut->nb_obs);
+	beta[aut->nb_obs-1] = calloc(aut->nb_states,sizeof(double));
+	for(int i = 0; i < aut->nb_states; ++i)
 	{
+		beta[aut->nb_obs-1][i] = 1;
+	}
+	for(int k = aut->nb_obs-2; k > 0; --k)
+	{
+		beta[k] = calloc(aut->nb_states,sizeof(double));
 		for(int j = aut->nb_states-1; j > -1; --j)
 		{
-			for(int i = aut->nb_states-1; i > 0; --i)
+			double val = 0;
+			for(int i = aut->nb_states-1; i > -1; --i)
 			{
-
-				cur = search_state(aut, states[i]);
-				res += res * get_trans_prob(cur, states[j], aut->nb_states) * 
-				get_obs_prob(cur,obs[k],aut->nb_obs);
+				cur = search_state(aut, states[j]);
+				struct state *cur2 = search_state(aut,states[i]); 
+				val += beta[k+1][i] * get_trans_prob(cur,states[i],aut->nb_states) * 
+				get_obs_prob(cur2,obs[k+1],aut->nb_obs);
 			}
+			beta[k][j] = val;
 		}
+		free(beta[k+1]);
 	}
+	for(int j = aut->nb_states-1; j > -1; --j)
+	{
+		double val = 0;
+		for(int i = aut->nb_states-1; i > -1; --i)
+		{
+			cur = search_state(aut, states[j]);
+			struct state *cur2 = search_state(aut,states[i]); 
+			val += beta[1][i] * get_trans_prob(cur,states[i],aut->nb_states) * 
+			get_obs_prob(cur2,obs[1],aut->nb_obs);
+		}
+		res += val;
+	}
+	free(beta[1]);
+	free(beta);
+	return res;
 	/*
 	for(int j = aut->nb_states-1; j > -1; --j)
 	{
@@ -271,9 +300,10 @@ double backward_recursion(struct automate *aut, char **states, char **obs)
 			get_obs_prob(cur,obs[0],aut->nb_obs);
 		}
 	}
-	*/
+	
 	cur = search_state(aut, *states);
 	return res * cur->p_init * get_obs_prob(cur, obs[0], aut->nb_obs);
+	*/
 }
 
 int main()
@@ -326,8 +356,8 @@ int main()
 	printf("is_p: %d\nis_t: %d\nis_e: %d\n",is_p,is_t,is_e);
 
 	//double res = compute(aut,test_states,obs, nb_obs);
-	double res = forward_recursion(aut,test_states,obs);
-	//double res = backward_recursion(aut,test_states,obs);
+	//double res = forward_recursion(aut,test_states,obs);
+	double res = backward_recursion(aut,test_states,obs);
 	printf("res: %f\n",res);
 
 	return 0;	
