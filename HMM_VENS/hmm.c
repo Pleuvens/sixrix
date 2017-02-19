@@ -228,29 +228,20 @@ double forward_recursion(struct automate *aut, char **states, char **obs)
 		}
 		free(alpha[k-1]);
 	}
+	/* END */
 	for(int i = 0; i < aut->nb_states; ++i)
 	{
 		res += alpha[aut->nb_obs-1][i];
 	}
 	free(alpha[aut->nb_obs-1]);
-	/*
-	for(int j = aut->nb_states-1; j > -1; --j)
-	{
-		for(int k = aut->nb_obs-1; k > -1; --k)
-		{
-			cur = search_states(aut, states[0]);
-			res += res * cur->p_init * 
-			get_obs_prob(cur,obs[0],aut->nb_obs);
-		}
-	}
-	*/
 	free(alpha);
 	return res;
 }
 
 double backward_recursion(struct automate *aut, char **states, char **obs)
 {
-	double res = 1;
+	double res = 0;
+	double val = 0;
 	struct state *cur = NULL;
 	double **beta = calloc(sizeof(double*),aut->nb_obs);
 	beta[aut->nb_obs-1] = calloc(aut->nb_states,sizeof(double));
@@ -261,31 +252,25 @@ double backward_recursion(struct automate *aut, char **states, char **obs)
 	for(int k = aut->nb_obs-2; k > 0; --k)
 	{
 		beta[k] = calloc(aut->nb_states,sizeof(double));
-		for(int j = aut->nb_states-1; j > -1; --j)
+		for(int j = 0; j < aut->nb_states; ++j)
 		{
-			double val = 0;
-			for(int i = aut->nb_states-1; i > -1; --i)
+			val = 0;
+			for(int i = 0; i < aut->nb_states; ++i)
 			{
-				cur = search_state(aut, states[j]);
-				struct state *cur2 = search_state(aut,states[i]); 
-				val += beta[k+1][i] * get_trans_prob(cur,states[i],aut->nb_states) * 
-				get_obs_prob(cur2,obs[k+1],aut->nb_obs);
+				cur = search_state(aut, states[i]);
+				struct state *cur2 = search_state(aut,states[j]);
+				val += beta[k+1][i] * get_trans_prob(cur2,states[i],aut->nb_states) * 
+				get_obs_prob(cur,obs[k+1],aut->nb_obs);
 			}
 			beta[k][j] = val;
 		}
 		free(beta[k+1]);
 	}
-	for(int j = aut->nb_states-1; j > -1; --j)
+	for(int i = 0; i < aut->nb_states; ++i)
 	{
-		double val = 0;
-		for(int i = aut->nb_states-1; i > -1; --i)
-		{
-			cur = search_state(aut, states[j]);
-			struct state *cur2 = search_state(aut,states[i]); 
-			val += beta[1][i] * get_trans_prob(cur,states[i],aut->nb_states) * 
-			get_obs_prob(cur2,obs[1],aut->nb_obs);
-		}
-		res += val;
+		cur = search_state(aut, states[i]);
+		res += beta[1][i] * cur->p_init * 
+		get_obs_prob(cur,obs[0],aut->nb_obs);
 	}
 	free(beta[1]);
 	free(beta);
