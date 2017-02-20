@@ -4,7 +4,7 @@
 CC= gcc
 
 CPPFLAGS= -lm
-CFLAGS= -Wall -Wextra -Werror -std=c99 -g3
+CFLAGS= -Wall -std=c99 -g3
 LDFLAGS=
 LDLIBS= -lm
 
