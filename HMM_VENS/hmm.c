@@ -232,12 +232,13 @@ double backward_recursion(struct automate *aut, char **states, int len, char **o
 	return res;
 }
 
-double _max(double a,double b)
+double _max(double a,double b, int *index, int new_index)
 {
 	if(a > b)
 	{
 		return a;
 	} else {
+		*index = new_index; 
 		return b;
 	}
 }
@@ -261,19 +262,14 @@ double viterbi(struct automate *aut, char **states, int len, char **obs,char **p
 	struct state *cur2 = NULL;
 	double **max = calloc(aut->nb_obs,sizeof(double*));
 	*max = calloc(len,sizeof(double));
-	char *node = NULL;
-	int node_len = 0;
 	double res = 0;
+	int *index = calloc(len,sizeof(int));
 	for(int i = 0; i < len; ++i)
 	{
 		cur = search_state(aut, states[i]);
 		max[0][i] = cur->p_init * get_obs_prob(cur,obs[0],aut->nb_obs);
-		node = max_node(res,max[0][i],node,states[i]);
-		res = _max(res,max[0][i]);
+		res = _max(res,max[0][i],index,i);
 	}
-	node_len = strlen(node);
-	path[0] = malloc(node_len*sizeof(char));
-	path[0] = strncpy(path[0],node,node_len);
 	for(int k = 1; k < aut->nb_obs; ++k)
 	{
 		max[k] = calloc(len,sizeof(double));
@@ -286,31 +282,18 @@ double viterbi(struct automate *aut, char **states, int len, char **obs,char **p
 				cur = search_state(aut,states[i]);
 				double tmp = get_trans_prob(cur,states[j],aut->nb_states) * 
 				get_obs_prob(cur2,obs[k],aut->nb_obs) * max[k-1][i];
-				val_max = _max(val_max, tmp);
+				val_max = _max(val_max, tmp, index+k,i);
 			}
 			max[k][j] = val_max;
 		}
-		res = 0;
-		node = NULL;
-		for(int p = 0; p < len; ++p)
-		{
-			node = max_node(res,max[k][p],node,states[p]);
-			res = _max(res,max[k][p]);
-		}
-		node_len = strlen(node);
-		path[k] = malloc(node_len*sizeof(char));
-		path[k] = strncpy(path[k],node,node_len);
 		free(max[k-1]);
 	}
-	//for(int i = 0; i < len; ++i)
-	//{
-		//res = _max(res,max[aut->nb_obs-1][i]);
-		//node = max_node(path_init,max[len-1][i],node,states[i]);
-		//path_init = _max(path_init,max[len-1][i]);
-	//}
-	//node_len = strlen(node);
-	//path[len-1] = malloc(node_len*sizeof(char));
-	//path[len-1] = strncpy(path[0],node,node_len);
+	for(int i = 0; i < len; ++i)
+	{
+		res = _max(res,max[aut->nb_obs-1][i],index+len-1,i);
+		printf("%s ",states[index[i]]);
+	}
+	printf("\n");
 	free(max[aut->nb_obs-1]);
 	free(max);
 	return res;
@@ -352,6 +335,7 @@ int main()
 
 	char *obs[] = {"S","M","S","L"};
 	char *test_states[] = {"Hot","Hot","Cold","Cold"};
+	char *test_states2[] = {"Cold","Cold","Cold","Hot"};
 	int test_len = 4;
 
 	double A[] = {0.7,0.3,0.4,0.6};
@@ -365,7 +349,7 @@ int main()
 
 	printf("is_p: %d\nis_t: %d\nis_e: %d\n",is_p,is_t,is_e);
 
-	//double res = compute(aut,test_states,obs, nb_obs);
+	//double res = compute(aut,test_states2,obs, 2);
 	//double res = forward_recursion(aut,test_states,test_len,obs);
 	//double res = backward_recursion(aut,test_states,test_len,obs);
 	char **path = malloc(test_len*sizeof(char*));
