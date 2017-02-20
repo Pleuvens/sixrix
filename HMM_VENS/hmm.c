@@ -242,17 +242,38 @@ double _max(double a,double b)
 	}
 }
 
-double viterbi(struct automate *aut, char **states, int len, char **obs)
+char* max_node(double aa, double bb, char* a, char *b)
+{
+	printf("%s: %f | %s %f\n",a,aa,b,bb);
+	if(aa >= bb)
+	{
+		return a;
+	} else 
+	{
+		return b;
+	}
+}
+
+
+double viterbi(struct automate *aut, char **states, int len, char **obs,char **path)
 {
 	struct state *cur = search_state(aut, states[0]);
 	struct state *cur2 = NULL;
 	double **max = calloc(aut->nb_obs,sizeof(double*));
 	*max = calloc(len,sizeof(double));
-	for(int i = 1; i < len; ++i)
+	char *node = NULL;
+	int node_len = 0;
+	double res = 0;
+	for(int i = 0; i < len; ++i)
 	{
 		cur = search_state(aut, states[i]);
 		max[0][i] = cur->p_init * get_obs_prob(cur,obs[0],aut->nb_obs);
+		node = max_node(res,max[0][i],node,states[i]);
+		res = _max(res,max[0][i]);
 	}
+	node_len = strlen(node);
+	path[0] = malloc(node_len*sizeof(char));
+	path[0] = strncpy(path[0],node,node_len);
 	for(int k = 1; k < aut->nb_obs; ++k)
 	{
 		max[k] = calloc(len,sizeof(double));
@@ -269,13 +290,27 @@ double viterbi(struct automate *aut, char **states, int len, char **obs)
 			}
 			max[k][j] = val_max;
 		}
+		res = 0;
+		node = NULL;
+		for(int p = 0; p < len; ++p)
+		{
+			node = max_node(res,max[k][p],node,states[p]);
+			res = _max(res,max[k][p]);
+		}
+		node_len = strlen(node);
+		path[k] = malloc(node_len*sizeof(char));
+		path[k] = strncpy(path[k],node,node_len);
 		free(max[k-1]);
 	}
-	double res = 0;
-	for(int i = 0; i < len; ++i)
-	{
-		res = _max(res,max[aut->nb_obs-1][i]);
-	}
+	//for(int i = 0; i < len; ++i)
+	//{
+		//res = _max(res,max[aut->nb_obs-1][i]);
+		//node = max_node(path_init,max[len-1][i],node,states[i]);
+		//path_init = _max(path_init,max[len-1][i]);
+	//}
+	//node_len = strlen(node);
+	//path[len-1] = malloc(node_len*sizeof(char));
+	//path[len-1] = strncpy(path[0],node,node_len);
 	free(max[aut->nb_obs-1]);
 	free(max);
 	return res;
@@ -333,7 +368,13 @@ int main()
 	//double res = compute(aut,test_states,obs, nb_obs);
 	//double res = forward_recursion(aut,test_states,test_len,obs);
 	//double res = backward_recursion(aut,test_states,test_len,obs);
-	double res = viterbi(aut,test_states,test_len,obs);
+	char **path = malloc(test_len*sizeof(char*));
+	double res = viterbi(aut,test_states,test_len,obs,path);
 	printf("res: %f\n",res);
+	for(int i = 0; i < test_len; ++i)
+	{
+		printf("%s ",path[i]);
+	}
+	printf("\n");
 	return 0;	
 }
