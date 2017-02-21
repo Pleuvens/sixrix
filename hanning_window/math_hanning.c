@@ -1,18 +1,23 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
+/*  function w = hanning(varargin)
+%   HANNING   Hanning window.
+%   HANNING(N) returns the N-point symmetric Hanning window in a column
+%   vector.  Note that the first and last zero-weighted window samples
+%   are not included.
+%
+%   HANNING(N,'symmetric') returns the same result as HANNING(N).
+%
+%   HANNING(N,'periodic') returns the N-point periodic Hanning window,
+%   and includes the first zero-weighted window sample.
+%
+%   NOTE: Use the HANN function to get a Hanning window which has the
+%          first and last zero-weighted samples.ep
+    itype = 1 --> periodic
+    itype = 0 --> symmetric
+    default itype=0 (symmetric)
 
-#include "math_hanning.h"
-#define PI 3.14159265358979323846
-
-void hanning1(double tab[],size_t len){
-
-  for (size_t i = 0; i < len; i++) {
-      double mul= 0.5 * (1 - cos(2*PI*i/len-1));
-      tab[i]=mul*tab[i];
-  }
-
-}
+    Copyright 1988-2004 The MathWorks, Inc.
+%   $Revision: 1.11.4.3 $  $Date: 2007/12/14 15:05:04 $
+*/
 
 float *hanning(int N, short itype)
 {
@@ -59,38 +64,4 @@ float *hanning(int N, short itype)
         w[0] = 0.0;
     }
     return(w);
-}
-
-
-
-
-int main(int argc, char const *argv[]) {
-  (void)argc;
-  (void)argv;
-
-  double dataIn[10];
-  for (size_t i = 0; i <10; i++) {
-    dataIn[i]=1;
-    printf(" %f ",dataIn[i]);
-  }
-  printf("\n");
-  printf("hanning\n");
-
-  hanning1(dataIn,10);
-
-  for (size_t i = 0; i <10; i++) {
-    printf(" %f ",dataIn[i]);
-  }
-  printf("\n");
-
-  //float data[10];
-  float *data=hanning(15,1);
-
-
-
-
-
-
-
-  return 0;
 }
