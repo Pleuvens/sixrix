@@ -232,47 +232,35 @@ double backward_recursion(struct automate *aut, char **states, int len, char **o
 	return res;
 }
 
-double _max(double a,double b, int *index, int new_index)
+double _max(double a,double b)
 {
 	if(a > b)
 	{
 		return a;
 	} else {
-		*index = new_index; 
 		return b;
 	}
 }
-
-char* max_node(double aa, double bb, char* a, char *b)
-{
-	printf("%s: %f | %s %f\n",a,aa,b,bb);
-	if(aa >= bb)
-	{
-		return a;
-	} else 
-	{
-		return b;
-	}
-}
-
 
 double viterbi(struct automate *aut, char **states, int len, char **obs,char **path)
 {
 	struct state *cur = search_state(aut, states[0]);
 	struct state *cur2 = NULL;
 	double **max = calloc(aut->nb_obs,sizeof(double*));
+	int **tab_path = calloc(aut->nb_obs,sizeof(int*));
 	*max = calloc(len,sizeof(double));
+	*tab_path = calloc(len,sizeof(int));
 	double res = 0;
-	int *index = calloc(len,sizeof(int));
 	for(int i = 0; i < len; ++i)
 	{
 		cur = search_state(aut, states[i]);
 		max[0][i] = cur->p_init * get_obs_prob(cur,obs[0],aut->nb_obs);
-		res = _max(res,max[0][i],index,i);
+		tab_path[0][i] = -1;
 	}
 	for(int k = 1; k < aut->nb_obs; ++k)
 	{
 		max[k] = calloc(len,sizeof(double));
+		tab_path[k] = calloc(len,sizeof(int));
 		for(int j = 0; j < len; ++j)
 		{
 			cur2 = search_state(aut,states[j]);
@@ -282,17 +270,63 @@ double viterbi(struct automate *aut, char **states, int len, char **obs,char **p
 				cur = search_state(aut,states[i]);
 				double tmp = get_trans_prob(cur,states[j],aut->nb_states) * 
 				get_obs_prob(cur2,obs[k],aut->nb_obs) * max[k-1][i];
-				val_max = _max(val_max, tmp, index+k,i);
+				val_max = _max(val_max, tmp);
 			}
 			max[k][j] = val_max;
+			/*PATH*/
+			for(int i = 0; i < len; ++i)
+			{
+				cur = search_state(aut,states[i]);
+				double tmp = get_trans_prob(cur,states[j],aut->nb_states) * 
+				get_obs_prob(cur2,obs[k],aut->nb_obs) * max[k-1][i];
+				if(tmp == val_max)
+				{
+					tab_path[k][j] = i;
+					break;
+				}
+			}
+			/*----*/
 		}
-		free(max[k-1]);
+		//free(max[k-1]);
+	}
+	printf("\n");	
+	for(int k = 0; k < aut->nb_obs; ++k)
+	{
+		for(int i = 0; i < len; ++i)
+		{
+			printf("%f ",max[k][i]);
+		}
+		printf("\n");
+	}
+	for(int k = 0; k < aut->nb_obs; ++k)
+	{
+		for(int i = 0; i < len; ++i)
+		{
+			printf("%d ",tab_path[k][i]);
+		}
+		printf("\n");
 	}
 	for(int i = 0; i < len; ++i)
 	{
-		res = _max(res,max[aut->nb_obs-1][i],index+len-1,i);
-		printf("%s ",states[index[i]]);
+		res = _max(res,max[aut->nb_obs-1][i]);
 	}
+	/* TEST Backtrack */
+	int previous = -1;
+	for(int i = 0; i < len; ++i)
+	{
+		if(max[aut->nb_obs-1][i] == res)
+		{
+			path[aut->nb_obs-1] = states[i];
+			previous = i;
+			break;
+		}
+	}
+	for(int k = aut->nb_obs-2; k > -1; --k)
+	{
+		path[k] = states[tab_path[k+1][previous]];
+		previous = tab_path[k+1][previous];
+	}
+
 	printf("\n");
 	free(max[aut->nb_obs-1]);
 	free(max);
@@ -328,14 +362,14 @@ int main()
 	int nb_obs = 4;	
 	int nb_k = 3;
 	//SET TRAMSITION PROBA
-	char *states[] = {"Hot","Cold"};
+	char *states[] = {"Hot ","Cold"};
 	double proba_init[] = {0.6,0.4};
 
 	char *obj[] = {"S","M","L"};
 
 	char *obs[] = {"S","M","S","L"};
-	char *test_states[] = {"Hot","Hot","Cold","Cold"};
-	char *test_states2[] = {"Cold","Cold","Cold","Hot"};
+	char *test_states[] = {"Hot ","Hot ","Cold","Cold"};
+	//char *test_states2[] = {"Cold","Cold","Cold","Hot"};
 	int test_len = 4;
 
 	double A[] = {0.7,0.3,0.4,0.6};
