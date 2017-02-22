@@ -333,6 +333,45 @@ double viterbi(struct automate *aut, char **states, int len, char **obs,char **p
 	return res;
 }
 
+double xi(struct automate *aut, char **states, char **obs, int len, double **alpha, double **beta,
+int k, int index_i, int index_j)
+{
+	struct state *cur_i = NULL;
+	struct state *cur_j = NULL;
+	/* NUMERATEUR */
+	cur_i = search_state(aut,states[index_i]);
+	cur_j = search_state(aut,states[index_j]);
+	double numerateur =  alpha[k][index_i]  * get_trans_prob(cur_i,states[index_j],aut->nb_states) * 
+	get_obs_prob(cur_j,obs[k+1],aut->nb_obs) *  beta[k+1][index_j] ;
+	/* DENOMINATEUR */
+	double denominateur = 0;
+	for(int i = 0; i < len; ++i)
+	{
+		cur_i = search_state(aut,states[i]);
+		for(int j = 0; j < len; ++j)
+		{
+			cur_j = search_state(aut,states[j]);
+			denominateur +=  alpha[k][i] * get_trans_prob(cur_i,states[j],aut->nb_states) * 
+			get_obs_prob(cur_j,obs[k+1],aut->nb_obs) * beta[k+1][j];
+		}
+	}
+	return numerateur / denominateur;
+}
+
+double gamma(struct automate *aut, double **alpha, double **beta, int len, int k, int index)
+{
+	/* NUMERATEUR */
+	double numerateur = alpha[k][index] * beta[k][index];
+
+	/* DENOMINATEUR */
+	double denominateur = 0;
+	for(int i = 0; i < len; ++i)
+	{
+		denominateur += alpha[k][i] * beta[k][i];
+	}
+	return numerateur / denominateur;
+}
+
 int main()
 {
 	/* TEST 1
