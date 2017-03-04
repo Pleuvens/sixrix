@@ -367,7 +367,7 @@ double gamma(struct automate *aut, double **alpha, double **beta, int len, int k
 	double denominateur = 0;
 	for(int i = 0; i < len; ++i)
 	{
-		denominateur += alpha[k][i] * beta[k][i];
+		denominateur += alpha[k][i] * beta[k][i] /* * a(i,j)bj(i)*/;
 	}
 	return numerateur / denominateur;
 }
