@@ -152,9 +152,9 @@ double compute(struct automate *aut, char **states, char **obs, int len)
 	return result;
 }
 
-double forward_recursion(struct automate *aut, char **states, int len, char **obs)
+double forward_recursion(struct automate *aut, char **states, int len, char **obs, 
+double **alpha)
 {
-	double **alpha = calloc(aut->nb_obs,sizeof(double*));
 	struct state *cur = NULL;
 	struct state *cur2 = NULL;
 	double res = 0;
@@ -181,24 +181,21 @@ double forward_recursion(struct automate *aut, char **states, int len, char **ob
 			}
 			alpha[k][j] = val * get_obs_prob(cur2, obs[k], aut->nb_obs);
 		}
-		free(alpha[k-1]);
 	}
 	/* END */
 	for(int i = 0; i < len; ++i)
 	{
 		res += alpha[aut->nb_obs-1][i];
 	}
-	free(alpha[aut->nb_obs-1]);
-	free(alpha);
 	return res;
 }
 
-double backward_recursion(struct automate *aut, char **states, int len, char **obs)
+double backward_recursion(struct automate *aut, char **states, int len, char **obs,
+double **beta)
 {
 	double res = 0;
 	double val = 0;
 	struct state *cur = NULL;
-	double **beta = calloc(sizeof(double*),aut->nb_obs);
 	beta[aut->nb_obs-1] = calloc(len,sizeof(double));
 	for(int i = 0; i < len; ++i)
 	{
@@ -219,16 +216,15 @@ double backward_recursion(struct automate *aut, char **states, int len, char **o
 			}
 			beta[k][j] = val;
 		}
-		free(beta[k+1]);
 	}
+	beta[0] = calloc(len,sizeof(double));
 	for(int i = 0; i < len; ++i)
 	{
 		cur = search_state(aut, states[i]);
-		res += beta[1][i] * cur->p_init * 
+		beta[0][i] = beta[1][i] * cur->p_init * 
 		get_obs_prob(cur,obs[0],aut->nb_obs);
+		res += beta[0][i];
 	}
-	free(beta[1]);
-	free(beta);
 	return res;
 }
 
@@ -343,7 +339,7 @@ int k, int index_i, int index_j)
 	cur_j = search_state(aut,states[index_j]);
 	double numerateur =  alpha[k][index_i]  * get_trans_prob(cur_i,states[index_j],aut->nb_states) * 
 	get_obs_prob(cur_j,obs[k+1],aut->nb_obs) *  beta[k+1][index_j] ;
-	/* DENOMINATEUR */
+	/* DENOMINATEUR */ /* FIXME */
 	double denominateur = 0;
 	for(int i = 0; i < len; ++i)
 	{
@@ -367,9 +363,65 @@ double gamma(struct automate *aut, double **alpha, double **beta, int len, int k
 	double denominateur = 0;
 	for(int i = 0; i < len; ++i)
 	{
-		denominateur += alpha[k][i] * beta[k][i] /* * a(i,j)bj(i)*/;
+		denominateur += alpha[k][i] * beta[k][i];
 	}
 	return numerateur / denominateur;
+}
+
+void baum_welch(struct automate *aut, char **states, char **obs, int len)
+{
+	double ***xi_tab = calloc(sizeof(double**),len);
+	double **gamma_tab = calloc(sizeof(double*),len);
+	double **alpha = calloc(sizeof(double*),len);
+	double **beta = calloc(sizeof(double*),len);
+	forward_recursion(aut,states,len,obs,alpha);
+	backward_recursion(aut,states,len,obs,beta);
+	for(int k = 0; k < len-1; ++k)
+	{
+		xi_tab[k] = calloc(sizeof(double*),aut->nb_states);
+		gamma_tab[k] = calloc(sizeof(double),aut->nb_states);
+		for(int i = 0; i < aut->nb_states; ++i)
+		{
+			xi_tab[k][i] = calloc(sizeof(double),aut->nb_states);
+			for(int j = 0; j < aut->nb_states; ++j)
+			{
+				xi_tab[k][i][j] = xi(aut,states,obs,len,alpha,beta,k,i,j);
+				printf("%f ",xi_tab[k][i][j]);
+			}
+			printf("\n");
+			gamma_tab[k][i] = gamma(aut,alpha,beta,len,k,i);
+		}
+		printf("\n");
+	}
+	
+	double **prob_b = calloc(sizeof(double*),aut->nb_states);
+	double **prob_a = calloc(sizeof(double*),aut->nb_states);
+	double *prob_init = calloc(sizeof(double),aut->nb_states);
+	
+	for(int i = 0; i < aut->nb_states; ++i)
+	{
+		prob_a[i] = calloc(sizeof(double),aut->nb_states);
+		prob_b[i] = calloc(sizeof(double),aut->nb_states);
+		prob_init[i] = gamma_tab[0][i]; 
+		for(int j = 0; j < aut->nb_states; ++j)
+		{
+			double a_num = 0;
+			double a_denom = 0;
+			double b_num = 0;
+			double b_denom = 0;
+			for(int k = 0; k < len-1; ++k)
+			{
+				a_num += xi_tab[k][i][j];
+				b_num += xi_tab[k][i][j]; /* FIXME */
+				a_denom += gamma_tab[k][i];
+				b_denom += gamma_tab[k][i]; /* FIXME */
+			}
+			prob_a[i][j] = a_num/a_denom;
+			prob_b[i][j] = b_num/b_denom;
+			printf("%f ",prob_a[i][j]);
+		}
+		printf("\n");
+	}	
 }
 
 int main()
@@ -423,15 +475,20 @@ int main()
 	printf("is_p: %d\nis_t: %d\nis_e: %d\n",is_p,is_t,is_e);
 
 	//double res = compute(aut,test_states2,obs, 2);
-	//double res = forward_recursion(aut,test_states,test_len,obs);
-	//double res = backward_recursion(aut,test_states,test_len,obs);
+	//double **alpha = calloc(sizeof(double*),test_len);
+	//double **beta = calloc(sizeof(double*),test_len);
+	//double res = forward_recursion(aut,test_states,test_len,obs,alpha);
+	//double res = backward_recursion(aut,test_states,test_len,obs,beta);
+	/*
 	char **path = malloc(test_len*sizeof(char*));
 	double res = viterbi(aut,test_states,test_len,obs,path);
-	printf("res: %f\n",res);
 	for(int i = 0; i < test_len; ++i)
 	{
 		printf("%s ",path[i]);
 	}
 	printf("\n");
+	*/
+	//printf("res: %f\n",res);
+	baum_welch(aut,test_states,obs,test_len);
 	return 0;	
 }
