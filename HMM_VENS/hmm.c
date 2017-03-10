@@ -376,6 +376,7 @@ void baum_welch(struct automate *aut, char **states, char **obs, int len)
 	double **beta = calloc(sizeof(double*),len);
 	forward_recursion(aut,states,len,obs,alpha);
 	backward_recursion(aut,states,len,obs,beta);
+
 	for(int k = 0; k < len-1; ++k)
 	{
 		xi_tab[k] = calloc(sizeof(double*),aut->nb_states);
@@ -393,11 +394,12 @@ void baum_welch(struct automate *aut, char **states, char **obs, int len)
 		}
 		printf("\n");
 	}
+	printf("\n");
 	
-	double **prob_b = calloc(sizeof(double*),aut->nb_states);
+	double *prob_b = calloc(sizeof(double*),aut->nb_states);
 	double **prob_a = calloc(sizeof(double*),aut->nb_states);
 	double *prob_init = calloc(sizeof(double),aut->nb_states);
-	
+	/*	
 	for(int i = 0; i < aut->nb_states; ++i)
 	{
 		prob_a[i] = calloc(sizeof(double),aut->nb_states);
@@ -407,21 +409,34 @@ void baum_welch(struct automate *aut, char **states, char **obs, int len)
 		{
 			double a_num = 0;
 			double a_denom = 0;
-			double b_num = 0;
-			double b_denom = 0;
 			for(int k = 0; k < len-1; ++k)
 			{
 				a_num += xi_tab[k][i][j];
-				b_num += xi_tab[k][i][j]; /* FIXME */
 				a_denom += gamma_tab[k][i];
-				b_denom += gamma_tab[k][i]; /* FIXME */
 			}
 			prob_a[i][j] = a_num/a_denom;
-			prob_b[i][j] = b_num/b_denom;
 			printf("%f ",prob_a[i][j]);
 		}
 		printf("\n");
-	}	
+	}
+	printf("\n");
+	*/
+	
+	for(int i = 0; i < aut->nb_states; ++i)
+	{
+		prob_init[i] = gamma_tab[0][i]; 
+		double b_num = 0;
+		double b_denom = 0;
+		for(int k = 0; k < len-1; ++k)
+		{
+			struct state *cur_i = search_state(aut,states[i]);
+			b_num += gamma_tab[k][i] * get_obs_prob(cur_i,obs[k],aut->nb_obs); 
+			b_denom += gamma_tab[k][i];
+		}
+		prob_b[i] = b_num/b_denom;
+		printf("%f ",prob_b[i]);
+		printf("\n");
+	}
 }
 
 int main()
@@ -447,7 +462,7 @@ int main()
 
 	struct automate *aut = make_automate(states, obj, proba_init, A, B, nb_states,nb_obs, nb_k);
 	*/
-	/* TEST 2 */
+	/* TEST 2 
 	int nb_states = 2;
 	//Test Pluie Soleil
 	int nb_obs = 4;	
@@ -465,7 +480,27 @@ int main()
 
 	double A[] = {0.7,0.3,0.4,0.6};
 	double B[] = {0.1,0.4,0.5,0.7,0.2,0.1};
+	*/
+	/* TEST 3 */
+	int nb_states = 2;
+	//Test Pluie Soleil
+	int nb_obs = 20;	
+	int nb_k = 3;
+	//SET TRAMSITION PROBA
+	char *states[] = {"LA","NY"};
+	double proba_init[] = {0.6,0.4};
 
+	char *obj[] = {"LA  ","NY  ","NULL"};
+
+	char *obs[] = {"NULL","LA  ","LA  ","NULL","NY  ","NULL","NY  ","NY  ",
+	"NY  ","NULL","NY  ","NY  ","NY  ","NY  ","NY  ","NULL","NULL","LA  ",
+	"LA  ","NY  "};
+	char *test_states[] = {"Hot ","Hot ","Cold","Cold"};
+	//char *test_states2[] = {"Cold","Cold","Cold","Hot"};
+	int test_len = 2;
+
+	double A[] = {0.5,0.5,0.5,0.5};
+	double B[] = {0.4,0.1,0.5,0.1,0.5,0.4};
 	struct automate *aut = make_automate(states, obj, proba_init, A, B, nb_states,nb_obs, nb_k);
 	
 	int is_p = is_p_init_valid(aut);
@@ -475,20 +510,20 @@ int main()
 	printf("is_p: %d\nis_t: %d\nis_e: %d\n",is_p,is_t,is_e);
 
 	//double res = compute(aut,test_states2,obs, 2);
-	//double **alpha = calloc(sizeof(double*),test_len);
-	//double **beta = calloc(sizeof(double*),test_len);
+	//double **alpha = calloc(sizeof(double*),aut->nb_obs);
+	//double **beta = calloc(sizeof(double*),aut->nb_obs);
 	//double res = forward_recursion(aut,test_states,test_len,obs,alpha);
 	//double res = backward_recursion(aut,test_states,test_len,obs,beta);
-	/*
-	char **path = malloc(test_len*sizeof(char*));
-	double res = viterbi(aut,test_states,test_len,obs,path);
-	for(int i = 0; i < test_len; ++i)
+	
+	char **path = malloc(aut->nb_obs*sizeof(char*));
+	double res = viterbi(aut,states,test_len,obs,path);
+	for(int i = 0; i < aut->nb_obs; ++i)
 	{
 		printf("%s ",path[i]);
 	}
 	printf("\n");
-	*/
+	
 	//printf("res: %f\n",res);
-	baum_welch(aut,test_states,obs,test_len);
+	//baum_welch(aut,test_states,obs,test_len);
 	return 0;	
 }
