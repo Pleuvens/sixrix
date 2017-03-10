@@ -285,7 +285,9 @@ double viterbi(struct automate *aut, char **states, int len, char **obs,char **p
 		}
 		//free(max[k-1]);
 	}
-	printf("\n");	
+	/*
+	printf("\n");
+	
 	for(int k = 0; k < aut->nb_obs; ++k)
 	{
 		for(int i = 0; i < len; ++i)
@@ -302,6 +304,7 @@ double viterbi(struct automate *aut, char **states, int len, char **obs,char **p
 		}
 		printf("\n");
 	}
+	*/
 	for(int i = 0; i < len; ++i)
 	{
 		res = _max(res,max[aut->nb_obs-1][i]);
@@ -340,6 +343,7 @@ int k, int index_i, int index_j)
 	double numerateur =  alpha[k][index_i]  * get_trans_prob(cur_i,states[index_j],aut->nb_states) * 
 	get_obs_prob(cur_j,obs[k+1],aut->nb_obs) *  beta[k+1][index_j] ;
 	/* DENOMINATEUR */ /* FIXME */
+	
 	double denominateur = 0;
 	for(int i = 0; i < len; ++i)
 	{
@@ -347,11 +351,12 @@ int k, int index_i, int index_j)
 		for(int j = 0; j < len; ++j)
 		{
 			cur_j = search_state(aut,states[j]);
-			denominateur +=  alpha[k][i] * get_trans_prob(cur_i,states[j],aut->nb_states) * 
+			denominateur +=  alpha[k][i] * get_trans_prob(cur_i,states[j],aut->nb_states) *
 			get_obs_prob(cur_j,obs[k+1],aut->nb_obs) * beta[k+1][j];
 		}
 	}
-	return numerateur / denominateur;
+	
+	return numerateur/denominateur;
 }
 
 double gamma(struct automate *aut, double **alpha, double **beta, int len, int k, int index)
@@ -377,28 +382,41 @@ void baum_welch(struct automate *aut, char **states, char **obs, int len)
 	forward_recursion(aut,states,len,obs,alpha);
 	backward_recursion(aut,states,len,obs,beta);
 
+	/* XI */
 	for(int k = 0; k < len-1; ++k)
 	{
 		xi_tab[k] = calloc(sizeof(double*),aut->nb_states);
-		gamma_tab[k] = calloc(sizeof(double),aut->nb_states);
 		for(int i = 0; i < aut->nb_states; ++i)
 		{
 			xi_tab[k][i] = calloc(sizeof(double),aut->nb_states);
 			for(int j = 0; j < aut->nb_states; ++j)
 			{
 				xi_tab[k][i][j] = xi(aut,states,obs,len,alpha,beta,k,i,j);
+				printf("%f ",xi_tab[k][i][j]);
 			}
+			printf("\n");
+		}
+		printf("\n");
+	}
+	printf("\n");
+
+	/* GAMMA */
+	for(int k = 0; k < len; ++k)
+	{
+		gamma_tab[k] = calloc(sizeof(double),aut->nb_states);
+		for(int i = 0; i < aut->nb_states; ++i)
+		{
 			gamma_tab[k][i] = gamma(aut,alpha,beta,len,k,i);
 			printf("%f ",gamma_tab[k][i]);
 		}
 		printf("\n");
 	}
 	printf("\n");
-	
+	/*
 	double *prob_b = calloc(sizeof(double*),aut->nb_states);
 	double **prob_a = calloc(sizeof(double*),aut->nb_states);
 	double *prob_init = calloc(sizeof(double),aut->nb_states);
-	/*	
+		
 	for(int i = 0; i < aut->nb_states; ++i)
 	{
 		prob_a[i] = calloc(sizeof(double),aut->nb_states);
@@ -419,7 +437,7 @@ void baum_welch(struct automate *aut, char **states, char **obs, int len)
 		printf("\n");
 	}
 	printf("\n");
-	*/
+	
 	
 	for(int i = 0; i < aut->nb_states; ++i)
 	{
@@ -436,6 +454,7 @@ void baum_welch(struct automate *aut, char **states, char **obs, int len)
 		printf("%f ",prob_b[i]);
 		printf("\n");
 	}
+	*/
 }
 
 int main()
@@ -516,13 +535,14 @@ int main()
 	
 	char **path = malloc(aut->nb_obs*sizeof(char*));
 	double res = viterbi(aut,states,test_len,obs,path);
+	/*
 	for(int i = 0; i < aut->nb_obs; ++i)
 	{
 		printf("%s ",path[i]);
 	}
 	printf("\n");
-	
+	*/
 	//printf("res: %f\n",res);
-	//baum_welch(aut,test_states,obs,test_len);
+	baum_welch(aut,path,obs,aut->nb_obs);
 	return 0;	
 }
