@@ -412,7 +412,8 @@ void baum_welch(struct automate *aut, char **states, char **obs, int len)
 		printf("\n");
 	}
 	printf("\n");
-	/*
+
+	
 	double *prob_b = calloc(sizeof(double*),aut->nb_states);
 	double **prob_a = calloc(sizeof(double*),aut->nb_states);
 	double *prob_init = calloc(sizeof(double),aut->nb_states);
@@ -420,7 +421,6 @@ void baum_welch(struct automate *aut, char **states, char **obs, int len)
 	for(int i = 0; i < aut->nb_states; ++i)
 	{
 		prob_a[i] = calloc(sizeof(double),aut->nb_states);
-		prob_b[i] = calloc(sizeof(double),aut->nb_states);
 		prob_init[i] = gamma_tab[0][i]; 
 		for(int j = 0; j < aut->nb_states; ++j)
 		{
@@ -442,19 +442,21 @@ void baum_welch(struct automate *aut, char **states, char **obs, int len)
 	for(int i = 0; i < aut->nb_states; ++i)
 	{
 		prob_init[i] = gamma_tab[0][i]; 
-		double b_num = 0;
-		double b_denom = 0;
-		for(int k = 0; k < len-1; ++k)
+		for(int j = 0; j < aut->nb_states; ++j)
 		{
-			struct state *cur_i = search_state(aut,states[i]);
-			b_num += gamma_tab[k][i] * get_obs_prob(cur_i,obs[k],aut->nb_obs); 
-			b_denom += gamma_tab[k][i];
+			double b_num = 0;
+			double b_denom = 0;
+			for(int l = 0; l < len-1; ++l)
+			{
+				struct state *cur_i = search_state(aut,states[i]);
+				b_num += xi_tab[l][i][j]; 
+			}
+			b_denom += gamma_tab[l][i];
+			prob_b[i] = b_num/b_denom;
+			printf("%f ",prob_b[i]);
+			printf("\n");
 		}
-		prob_b[i] = b_num/b_denom;
-		printf("%f ",prob_b[i]);
-		printf("\n");
 	}
-	*/
 }
 
 int main()
