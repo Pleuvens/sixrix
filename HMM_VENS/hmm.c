@@ -387,10 +387,9 @@ void baum_welch(struct automate *aut, char **states, char **obs, int len)
 			for(int j = 0; j < aut->nb_states; ++j)
 			{
 				xi_tab[k][i][j] = xi(aut,states,obs,len,alpha,beta,k,i,j);
-				printf("%f ",xi_tab[k][i][j]);
 			}
-			printf("\n");
 			gamma_tab[k][i] = gamma(aut,alpha,beta,len,k,i);
+			printf("%f ",gamma_tab[k][i]);
 		}
 		printf("\n");
 	}
