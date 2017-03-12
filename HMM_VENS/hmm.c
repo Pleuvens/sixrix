@@ -155,13 +155,13 @@ double compute(struct automate *aut, char **states, char **obs, int len)
 }
 
 double forward_recursion(struct automate *aut, char **states, int len, char **obs, 
-double **alpha)
+		double **alpha)
 {
 	struct state *cur = NULL;
 	struct state *cur2 = NULL;
 	double res = 0;
 	*alpha = calloc(aut->nb_states,sizeof(double));
-	
+
 	/* INITIALISATION */
 	for(int i = 0; i < aut->nb_states; ++i)
 	{
@@ -193,7 +193,7 @@ double **alpha)
 }
 
 double backward_recursion(struct automate *aut, char **states, int len, char **obs,
-double **beta)
+		double **beta)
 {
 	double res = 0;
 	double val = 0;
@@ -214,7 +214,7 @@ double **beta)
 				cur = search_state(aut, aut->states_n[i]);
 				struct state *cur2 = search_state(aut,aut->states_n[j]);
 				val += beta[k+1][i] * get_trans_prob(cur2,aut->states_n[i],aut->nb_states) * 
-				get_obs_prob(cur,obs[k+1],aut->nb_obs);
+					get_obs_prob(cur,obs[k+1],aut->nb_obs);
 			}
 			beta[k][j] = val;
 		}
@@ -224,7 +224,7 @@ double **beta)
 	{
 		cur = search_state(aut, aut->states_n[i]);
 		beta[0][i] = beta[1][i] * cur->p_init * 
-		get_obs_prob(cur,obs[0],aut->nb_obs);
+			get_obs_prob(cur,obs[0],aut->nb_obs);
 		res += beta[0][i];
 	}
 	return res;
@@ -267,7 +267,7 @@ double viterbi(struct automate *aut, char **states, int len, char **obs,char **p
 			{
 				cur = search_state(aut,aut->states_n[i]);
 				double tmp = get_trans_prob(cur,aut->states_n[j],aut->nb_states) * 
-				get_obs_prob(cur2,obs[k],aut->nb_obs) * max[k-1][i];
+					get_obs_prob(cur2,obs[k],aut->nb_obs) * max[k-1][i];
 				val_max = _max(val_max, tmp);
 			}
 			max[k][j] = val_max;
@@ -276,7 +276,7 @@ double viterbi(struct automate *aut, char **states, int len, char **obs,char **p
 			{
 				cur = search_state(aut,aut->states_n[i]);
 				double tmp = get_trans_prob(cur,aut->states_n[j],aut->nb_states) * 
-				get_obs_prob(cur2,obs[k],aut->nb_obs) * max[k-1][i];
+					get_obs_prob(cur2,obs[k],aut->nb_obs) * max[k-1][i];
 				if(tmp == val_max)
 				{
 					tab_path[k][j] = i;
@@ -287,9 +287,9 @@ double viterbi(struct automate *aut, char **states, int len, char **obs,char **p
 		}
 		//free(max[k-1]);
 	}
-	
+
 	printf("\n");
-	
+
 	for(int k = 0; k < aut->nb_obs; ++k)
 	{
 		for(int i = 0; i < aut->nb_states; ++i)
@@ -306,7 +306,7 @@ double viterbi(struct automate *aut, char **states, int len, char **obs,char **p
 		}
 		printf("\n");
 	}
-	
+
 	for(int i = 0; i < aut->nb_states; ++i)
 	{
 		res = _max(res,max[aut->nb_obs-1][i]);
@@ -335,7 +335,7 @@ double viterbi(struct automate *aut, char **states, int len, char **obs,char **p
 }
 
 double xi(struct automate *aut, char **states, char **obs, int len, double **alpha, double **beta,
-int k, int index_i, int index_j)
+		int k, int index_i, int index_j)
 {
 	struct state *cur_i = NULL;
 	struct state *cur_j = NULL;
@@ -343,9 +343,9 @@ int k, int index_i, int index_j)
 	cur_i = search_state(aut,aut->states_n[index_i]);
 	cur_j = search_state(aut,aut->states_n[index_j]);
 	double numerateur =  alpha[k][index_i]  * get_trans_prob(cur_i,aut->states_n[index_j],
-	aut->nb_states) * get_obs_prob(cur_j,obs[k+1],aut->nb_obs) *  beta[k+1][index_j];
+			aut->nb_states) * get_obs_prob(cur_j,obs[k+1],aut->nb_obs) *  beta[k+1][index_j];
 	/* DENOMINATEUR */ /* FIXME */
-	
+
 	double denominateur = 0;
 	for(int i = 0; i < aut->nb_states; ++i)
 	{
@@ -354,10 +354,10 @@ int k, int index_i, int index_j)
 		{
 			cur_j = search_state(aut,aut->states_n[j]);
 			denominateur +=  alpha[k][i] * get_trans_prob(cur_i,aut->states_n[j],aut->nb_states) *
-			get_obs_prob(cur_j,obs[k+1],aut->nb_obs) * beta[k+1][j];
+				get_obs_prob(cur_j,obs[k+1],aut->nb_obs) * beta[k+1][j];
 		}
 	}
-	
+
 	return numerateur/denominateur;
 }
 
@@ -375,87 +375,94 @@ double gamma(struct automate *aut, double **alpha, double **beta, int len, int k
 	return numerateur / denominateur;
 }
 
+int is_learning(struct automate *aut, double *prob_init, double **prob_a,
+double *prob_b)
+{
+	
+}
+
 void baum_welch(struct automate *aut, char **states, char **obs, int len)
 {
-	double ***xi_tab = calloc(sizeof(double**),len);
-	double **gamma_tab = calloc(sizeof(double*),len);
-	double **alpha = calloc(sizeof(double*),len);
-	double **beta = calloc(sizeof(double*),len);
-	forward_recursion(aut,states,len,obs,alpha);
-	backward_recursion(aut,states,len,obs,beta);
-
-	/* XI */
-	for(int k = 0; k < len-1; ++k)
+	while()
 	{
-		xi_tab[k] = calloc(sizeof(double*),aut->nb_states);
+		double ***xi_tab = calloc(sizeof(double**),len);
+		double **gamma_tab = calloc(sizeof(double*),len);
+		double **alpha = calloc(sizeof(double*),len);
+		double **beta = calloc(sizeof(double*),len);
+		forward_recursion(aut,states,len,obs,alpha);
+		backward_recursion(aut,states,len,obs,beta);
+
+		/* XI */
+		for(int k = 0; k < len-1; ++k)
+		{
+			xi_tab[k] = calloc(sizeof(double*),aut->nb_states);
+			for(int i = 0; i < aut->nb_states; ++i)
+			{
+				xi_tab[k][i] = calloc(sizeof(double),aut->nb_states);
+				for(int j = 0; j < aut->nb_states; ++j)
+				{
+					xi_tab[k][i][j] = xi(aut,states,obs,len,alpha,beta,k,i,j);
+					printf("%f ",xi_tab[k][i][j]);
+				}
+				printf("\n");
+			}
+			printf("\n");
+		}
+		printf("\n");
+
+		/* GAMMA */
+		for(int l = 0; l < len; ++l)
+		{
+			gamma_tab[l] = calloc(sizeof(double),aut->nb_states);
+			for(int i = 0; i < aut->nb_states; ++i)
+			{
+				gamma_tab[l][i] = gamma(aut,alpha,beta,len,l,i);
+				printf("%f ",gamma_tab[l][i]);
+			}
+			printf("\n");
+		}
+		printf("\n");
+
+
+		double *prob_b = calloc(sizeof(double*),aut->nb_states*aut->nb_k);
+		double **prob_a = calloc(sizeof(double*),aut->nb_states);
+		double *prob_init = calloc(sizeof(double),aut->nb_states);	
 		for(int i = 0; i < aut->nb_states; ++i)
 		{
-			xi_tab[k][i] = calloc(sizeof(double),aut->nb_states);
+			prob_a[i] = calloc(sizeof(double),aut->nb_states);
+			prob_init[i] = gamma_tab[0][i]; 
 			for(int j = 0; j < aut->nb_states; ++j)
 			{
-				xi_tab[k][i][j] = xi(aut,states,obs,len,alpha,beta,k,i,j);
-				printf("%f ",xi_tab[k][i][j]);
+				double a_num = 0;
+				double a_denom = 0;
+				for(int l = 0; l < len-1; ++l)
+				{
+					a_num += xi_tab[l][i][j];
+					a_denom += gamma_tab[l][i];
+				}
+				prob_a[i][j] = a_num/a_denom;
+				printf("%f ",prob_a[i][j]);
 			}
 			printf("\n");
 		}
 		printf("\n");
-	}
-	printf("\n");
 
-	/* GAMMA */
-	for(int l = 0; l < len; ++l)
-	{
-		gamma_tab[l] = calloc(sizeof(double),aut->nb_states);
+
 		for(int i = 0; i < aut->nb_states; ++i)
 		{
-			gamma_tab[l][i] = gamma(aut,alpha,beta,len,l,i);
-			printf("%f ",gamma_tab[l][i]);
-		}
-		printf("\n");
-	}
-	printf("\n");
-
-	
-	double *prob_b = calloc(sizeof(double*),aut->nb_states*aut->nb_k);
-	double **prob_a = calloc(sizeof(double*),aut->nb_states);
-	double *prob_init = calloc(sizeof(double),aut->nb_states);
-		
-	for(int i = 0; i < aut->nb_states; ++i)
-	{
-		prob_a[i] = calloc(sizeof(double),aut->nb_states);
-		prob_init[i] = gamma_tab[0][i]; 
-		for(int j = 0; j < aut->nb_states; ++j)
-		{
-			double a_num = 0;
-			double a_denom = 0;
-			for(int l = 0; l < len-1; ++l)
+			for(int k = 0; k < aut->nb_k; ++k)
 			{
-				a_num += xi_tab[l][i][j];
-				a_denom += gamma_tab[l][i];
+				double b_num = 0;
+				double b_denom = 0;
+				for(int l = 0; l < len-1; ++l)
+				{
+					b_denom += gamma_tab[l][i]; 
+					b_num += gamma_tab[k][i] * (obs[l] == aut->obs[k]);
+				}
+				prob_b[i*aut->nb_k+k] = b_num/b_denom;
+				printf("%f ",prob_b[i*aut->nb_k + k]);
+				printf("\n");
 			}
-			prob_a[i][j] = a_num/a_denom;
-			printf("%f ",prob_a[i][j]);
-		}
-		printf("\n");
-	}
-	printf("\n");
-	
-	
-	for(int i = 0; i < aut->nb_states; ++i)
-	{
-		prob_init[i] = gamma_tab[0][i]; 
-		for(int k = 0; k < aut->nb_k; ++k)
-		{
-			double b_num = 0;
-			double b_denom = 0;
-			for(int l = 0; l < len-1; ++l)
-			{
-				b_num += gamma_tab[l][i]; 
-				b_denom += gamma_tab[k][i];
-			}
-			prob_b[i*aut->nb_k+k] = b_num/b_denom;
-			printf("%f ",prob_b[i*aut->nb_k + k]);
-			printf("\n");
 		}
 	}
 }
@@ -482,9 +489,9 @@ int main()
 	double B[] = {0.4,0.6,0.9,0.1};
 
 	struct automate *aut = make_automate(states, obj, proba_init, A, B, nb_states,nb_obs, nb_k);
-	*/
+	 */
 	/* TEST 2 
-	int nb_states = 2;
+	   int nb_states = 2;
 	//Test Pluie Soleil
 	int nb_obs = 4;	
 	int nb_k = 3;
@@ -501,7 +508,7 @@ int main()
 
 	double A[] = {0.7,0.3,0.4,0.6};
 	double B[] = {0.1,0.4,0.5,0.7,0.2,0.1};
-	*/
+	 */
 	/* TEST 3 */
 	int nb_states = 2;
 	//Test Pluie Soleil
@@ -514,8 +521,8 @@ int main()
 	char *obj[] = {"LA  ","NY  ","NULL"};
 
 	char *obs[] = {"NULL","LA  ","LA  ","NULL","NY  ","NULL","NY  ","NY  ",
-	"NY  ","NULL","NY  ","NY  ","NY  ","NY  ","NY  ","NULL","NULL","LA  ",
-	"LA  ","NY  "};
+		"NY  ","NULL","NY  ","NY  ","NY  ","NY  ","NY  ","NULL","NULL","LA  ",
+		"LA  ","NY  "};
 	char *test_states[] = {"Hot ","Hot ","Cold","Cold"};
 	//char *test_states2[] = {"Cold","Cold","Cold","Hot"};
 	int test_len = 2;
@@ -523,7 +530,7 @@ int main()
 	double A[] = {0.5,0.5,0.5,0.5};
 	double B[] = {0.4,0.1,0.5,0.1,0.5,0.4};
 	struct automate *aut = make_automate(states, obj, proba_init, A, B, nb_states,nb_obs, nb_k);
-	
+
 	int is_p = is_p_init_valid(aut);
 	int is_t = is_t_valid(aut);
 	int is_e = is_e_valid(aut);
@@ -535,16 +542,16 @@ int main()
 	//double **beta = calloc(sizeof(double*),aut->nb_obs);
 	//double res = forward_recursion(aut,test_states,test_len,obs,alpha);
 	//double res = backward_recursion(aut,test_states,test_len,obs,beta);
-	
+
 	char **path = malloc(aut->nb_obs*sizeof(char*));
 	double res = viterbi(aut,states,test_len,obs,path);
 	/*	
-	for(int i = 0; i < aut->nb_obs; ++i)
-	{
+		for(int i = 0; i < aut->nb_obs; ++i)
+		{
 		printf("%s ",path[i]);
-	}
-	printf("\n");
-	*/
+		}
+		printf("\n");
+	 */
 	//printf("res: %f\n",res);
 	baum_welch(aut,path,obs,aut->nb_obs);
 	return 0;	
