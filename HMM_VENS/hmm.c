@@ -476,13 +476,13 @@ double *b)
 				for(int j = 0; j < aut->nb_states; ++j)
 				{
 					xi_tab[k][i][j] = xi(aut,states,obs,len,alpha,beta,k,i,j);
-					printf("%f ",xi_tab[k][i][j]);
+					//printf("%f ",xi_tab[k][i][j]);
 				}
-				printf("\n");
+				//printf("\n");
 			}
-			printf("\n");
+			//printf("\n");
 		}
-		printf("\n");
+		//printf("\n");
 		
 		/* GAMMA */
 		for(int l = 0; l < len; ++l)
@@ -491,11 +491,11 @@ double *b)
 			for(int i = 0; i < aut->nb_states; ++i)
 			{
 				gamma_tab[l][i] = gamma(aut,alpha,beta,len,l,i);
-				printf("%f ",gamma_tab[l][i]);
+				//printf("%f ",gamma_tab[l][i]);
 			}
-			printf("\n");
+			//printf("\n");
 		}
-		printf("\n");
+		//printf("\n");
 		for(int k = 0; k < len; ++k)
 		{
 			free(alpha[k]);
@@ -519,11 +519,11 @@ double *b)
 					a_denom += gamma_tab[l][i];
 				}
 				prob_a[i*aut->nb_states+j] = a_num/a_denom;
-				printf("%f ",prob_a[i*aut->nb_states+j]);
+				//printf("%f ",prob_a[i*aut->nb_states+j]);
 			}
-			printf("\n");
+			//printf("\n");
 		}
-		printf("\n");
+		//printf("\n");
 
 
 		for(int i = 0; i < aut->nb_states; ++i)
@@ -538,8 +538,8 @@ double *b)
 					b_num += gamma_tab[k][i] * (obs[l] == aut->obs[k]);
 				}
 				prob_b[i*aut->nb_k+k] = b_num/b_denom;
-				printf("%f ",prob_b[i*aut->nb_k + k]);
-				printf("\n");
+				//printf("%f ",prob_b[i*aut->nb_k + k]);
+				//printf("\n");
 			}
 		}
 		for(int k = 0; k < len-1; ++k)
@@ -555,6 +555,30 @@ double *b)
 		free(gamma_tab[len-1]);
 		free(gamma_tab);
 	}
+	printf("Final values\nA:\n");
+	for(int i = 0; i < aut->nb_states; ++i)
+	{
+		for(int j = 0; j < aut->nb_states; ++j)
+		{
+			printf("%f ",prob_a[i*aut->nb_states+j]);
+		}
+		printf("\n");
+	}
+	printf("\nB\n");
+	for(int i = 0; i < aut->nb_states; ++i)
+	{
+		for(int j = 0; j < aut->nb_k; ++j)
+		{
+			printf("%f ",prob_b[i*aut->nb_k+j]);
+		}
+		printf("\n");
+	}
+	printf("\nInit proba\n");
+	for(int i = 0; i < aut->nb_states; ++i)
+	{
+		printf("%f\n",prob_init[i]);
+	}
+	printf("\n");
 	free(prob_init);
 	free(prob_a);
 	free(prob_b);
@@ -642,19 +666,39 @@ int main()
 	char *obs[] = {"NULL","LA  ","LA  ","NULL","NY  ","NULL","NY  ","NY  ",
 		"NY  ","NULL","NY  ","NY  ","NY  ","NY  ","NY  ","NULL","NULL","LA  ",
 		"LA  ","NY  "};
-	char *test_states[] = {"Hot ","Hot ","Cold","Cold"};
+	//char *test_states[] = {"Hot ","Hot ","Cold","Cold"};
 	//char *test_states2[] = {"Cold","Cold","Cold","Hot"};
 	int test_len = 2;
 
 	double A[] = {0.5,0.5,0.5,0.5};
 	double B[] = {0.4,0.1,0.5,0.1,0.5,0.4};
+	printf("Initial values\nA:\n");
+	for(int i = 0; i < nb_states; ++i)
+	{
+		for(int j = 0; j < nb_states; ++j)
+		{
+			printf("%f ",A[i*nb_states+j]);
+		}
+		printf("\n");
+	}
+	printf("\nB\n");
+	for(int i = 0; i < nb_states; ++i)
+	{
+		for(int j = 0; j < nb_k; ++j)
+		{
+			printf("%f ",B[i*nb_k+j]);
+		}
+		printf("\n");
+	}
+	printf("\nInit proba\n");
+	for(int i = 0; i < nb_states; ++i)
+	{
+		printf("%f\n",proba_init[i]);
+	}
+	printf("\n");
 	struct automate *aut = make_automate(states, obj, proba_init, A, B, nb_states,nb_obs, nb_k);
 
-	int is_p = is_p_init_valid(aut);
-	int is_t = is_t_valid(aut);
-	int is_e = is_e_valid(aut);
-
-	printf("is_p: %d\nis_t: %d\nis_e: %d\n",is_p,is_t,is_e);
+	//printf("is_p: %d\nis_t: %d\nis_e: %d\n",is_p,is_t,is_e);
 
 	//double res = compute(aut,test_states2,obs, 2);
 	//double **alpha = calloc(sizeof(double*),aut->nb_obs);
@@ -663,7 +707,7 @@ int main()
 	//double res = backward_recursion(aut,test_states,test_len,obs,beta);
 
 	char **path = malloc(aut->nb_obs*sizeof(char*));
-	double res = viterbi(aut,states,test_len,obs,path);
+	viterbi(aut,states,test_len,obs,path);
 	/*	
 		for(int i = 0; i < aut->nb_obs; ++i)
 		{
