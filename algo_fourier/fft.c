@@ -50,6 +50,5 @@ int main()
   fft(tab, 8, PI);  // appel de la fft avec tableau de complex (qui ne sont que des réels pour le moment) + taille du tableau
 
   print_result("Output : ", tab);
-
   return 0;
 }
