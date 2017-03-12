@@ -33,7 +33,7 @@ void fft(cplx tab[], int n, double PI)
 
 void print_result(const char * s, cplx buf[], unsigned long k) {
   printf("%s", s);
-  for (int i = 0; i < k; i++){
+  for (unsigned long i = 0; i < k; i++){
     printf("(%g, %g) ", creal(buf[i]), cimag(buf[i]));
   }
   printf("\n");
