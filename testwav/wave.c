@@ -3,6 +3,7 @@
 # include <string.h>
 # include <stdlib.h>
 # include <math.h>
+# include <err.h>
 # include "fft.c"
 # include "wave.h"
 # define TRUE 1 
@@ -19,7 +20,8 @@ int main(int argc, char **argv) {
 
   // chemin du fichier
   char cwd[1024];
-  getcwd(cwd, sizeof(cwd));
+  if(getcwd(cwd, sizeof(cwd)) == NULL)
+  	err(3, "fail on getcwd");
   strcpy(filename, cwd);
   strcat(filename, "/");
   strcat(filename, argv[1]);
@@ -149,7 +151,8 @@ int main(int argc, char **argv) {
   if (header.format_type == 1) {
     printf("Continuer? Y/N?");
     char c = 'n';
-    scanf("%c", &c);
+    if(scanf("%c", &c) == -1)
+    	err(3, "fail on scanf");
     if (c == 'Y' || c == 'y') {
       long i =0;
       char data_buffer[size_of_each_sample];
@@ -159,7 +162,7 @@ int main(int argc, char **argv) {
 	size_is_correct = FALSE;
       }
       if (size_is_correct) { 
-	long low_limit = 0l;
+/*	long low_limit = 0l;
 	long high_limit = 0l;
 
 	switch (header.bits_per_sample) {
@@ -175,7 +178,7 @@ int main(int argc, char **argv) {
 	    low_limit = -2147483648;
 	    high_limit = 2147483647;
 	    break;
-	}					
+	}*/					
 	for (i =1; i <= num_samples; i++) {
 	  read = fread(data_buffer, sizeof(data_buffer), 1, ptr);
 	  if (read == 1) {
@@ -184,7 +187,7 @@ int main(int argc, char **argv) {
 	    for (xchannels = 0; xchannels < header.channels; xchannels ++ ) {
 	      // passage des petits endian en grand endian
 	      if (bytes_in_each_channel == 4) {
-		data_in_channel =	data_buffer[0] | 
+		data_in_channel = data_buffer[0] | 
 		  (data_buffer[1]<<8) | 
 		  (data_buffer[2]<<16) | 
 		  (data_buffer[3]<<24);
@@ -200,21 +203,22 @@ int main(int argc, char **argv) {
 	    }
 	  }
 	}
-	size_t k = 1;
+	long k = 1;
 	while ((k*2) < num_samples){
 	  k *= 2;
 	}
 	cplx second[k];
-	for(unsigned long i = 0; i < k; ++i)
+	for(long i = 0; i < k; ++i)
 	  second[i] = tab[i];
-	printf("\nTaille des données restantes %zu \n", k);
+
+//	printf("\nTaille des données restantes %zu \n", k);
 
 	fft(second, k, PI);
 
 	//print_result("Output : ", second, k);
 
 	unsigned long tableau[k];
-	for(unsigned long i = 0; i < k; ++i){
+	for(long i = 0; i < k; ++i){
 	  tableau[i] = csqrtl(pow(creal(second[i]), 2)+ pow(cimag(second[i]), 2));
 	  while(tableau[i] > 127)
 	    tableau[i] /= 127;
