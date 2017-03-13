@@ -1,5 +1,6 @@
 # include <gtk/gtk.h>
 # include <SDL.h>
+# include "wave.c"
 
 char *k;
 GdkPixbuf *pixbuf;
@@ -9,12 +10,16 @@ GtkWidget *choose;
 GtkWidget *pload;
 GtkImage *image;
 
+void on_button2_clicked(){
+gtk_main_quit();
+}
+
 void on_button4_clicked(){
   gtk_main_quit();
 }
 
 void on_button5_clicked(){
-  //pre_traitement(k);
+  traitement(k);
   gtk_main_quit();
 
 }
@@ -71,7 +76,7 @@ void on_button7_clicked(){
 }
 
 void on_button1_clicked(){
-  /*const gchar* chemin;
+  const gchar* chemin;
     GtkWidget *dialog;
     chemin = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(gtk_builder_get_object(builder, "filechooser")));
 
@@ -81,20 +86,11 @@ void on_button1_clicked(){
     GTK_BUTTONS_OK,
     "Vous avez choisi :\n%s", chemin);
     k = (char*)chemin;
-  // printf("%s ", k);
+ // printf("%s ", k);
   gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
   gtk_widget_destroy(choose);
-  pixbuf = gdk_pixbuf_new_from_file(k, NULL);
-  pixbuf = gdk_pixbuf_scale_simple(pixbuf, 500, 500, GDK_INTERP_BILINEAR);
-  gtk_image_set_from_pixbuf(image, pixbuf);
-  SDL_SaveBMP(load_image(k), "gtkimage.bmp");
-  char content[1000];
-  FILE *f = fopen("resultat", "r");
-  fscanf(f, "%[^\n]", content);
-  gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder, "label1")), content);
-  fclose(f);*/
-  gtk_main_quit();
+//  gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder, "label1")), content);
 
 }
 
