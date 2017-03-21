@@ -60,7 +60,7 @@ int is_e_valid(struct automate *aut)
 }
 
 struct automate* make_automate(char **states, char **k_name, double *proba_init, 
-		double *A,double *B, int nb_states, int nb_obs, int nb_k)
+double *A,double *B, int nb_states, int nb_obs, int nb_k)
 {
 	struct automate *aut = malloc(sizeof(struct automate));
 	aut->states_n = states;
@@ -607,6 +607,34 @@ void free_aut(struct automate *aut)
 	}
 	free(aut->states);
 	free(aut);
+}
+
+void saveVal(struct automate *aut)
+{
+	char *path = "";
+	FILE *f = fopen(path,"w");
+	int t_index = 0;
+	//fprintf("%d\n",aut->nb_states);
+	//fprintf("%d\n",aut->nb_k);
+	for(int i = 0; i < aut->nb_states; ++i)
+	{
+		t_index = i * aut->nb_states;
+		for(int k = 0; k < aut->nb_states; ++k)
+		{
+			fprintf("%f ", *(double*)(aut->states[i].a[k].item2));
+		}
+		//fprintf("\n");
+	}
+	for(int i = 0; i < aut->nb_states; ++i)
+	{
+		t_index = i * aut->nb_states;
+		for(int k = 0; k < aut->nb_k; ++k)
+		{
+			fprintf("%f ", *(double*)(aut->states[i].b[k].item2));
+		}
+		//fprintf("\n");
+	}
+	fclose(f);
 }
 
 void learning(struct automate *aut, char **states, char **obs, double *proba_init,
