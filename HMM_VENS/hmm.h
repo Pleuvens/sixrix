@@ -14,8 +14,10 @@ struct state {
 };
 
 struct automate {
+	char **states_n;
+	char **obs;
 	int nb_states;
-	int nb_obs;
+	int len;
 	int nb_k;
 	struct state *states;	
 };

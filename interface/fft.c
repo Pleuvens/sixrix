@@ -31,25 +31,10 @@ void fft(cplx tab[], int n, double PI)
 
 // Fonction de print qui affiche sous forme de couple (reel, imaginaire) un tableau de cplx 
 
-void print_result(const char * s, cplx buf[]) {
+void print_result(const char * s, cplx buf[], unsigned long k) {
   printf("%s", s);
-  for (int i = 0; i < 8; i++){
+  for (unsigned long i = 0; i < k; i++){
     printf("(%g, %g) ", creal(buf[i]), cimag(buf[i]));
   }
   printf("\n");
-}
-
-int main()
-{
-  double PI = atan2(1, 1) * 4; // Valeur de Pi
-  cplx tab[] = {0, 1, 2, 3, 4, 5, 6, 7};  // input qui représente la variation des tensions en fct du temps (obtenu avec le fenetrage)
-  					  // Doit être de taille n où n est une puissance de 2
-
-  print_result("Input : ", tab);
-
-  fft(tab, 8, PI);  // appel de la fft avec tableau de complex (qui ne sont que des réels pour le moment) + taille du tableau
-
-  print_result("Output : ", tab);
-
-  return 0;
 }

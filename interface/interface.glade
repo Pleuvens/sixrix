@@ -80,7 +80,7 @@
             <property name="orientation">vertical</property>
             <child>
               <object class="GtkButton" id="button3">
-                <property name="label" translatable="yes">Choisir un fichier</property>
+                <property name="label" translatable="yes">Choose a file</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -123,7 +123,7 @@
             </child>
             <child>
               <object class="GtkButton" id="button8">
-                <property name="label" translatable="yes">Enregistrer un fichier</property>
+                <property name="label" translatable="yes">Save a file</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -137,7 +137,7 @@
             </child>
             <child>
               <object class="GtkButton" id="button4">
-                <property name="label" translatable="yes">Quitter</property>
+                <property name="label" translatable="yes">Exit</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
