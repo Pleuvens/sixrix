@@ -9,6 +9,8 @@
 # include <fcntl.h>
 
 # define PI 3.14159265358979323846
+# define true 1
+# define false 0
 
 // WAVE file header format
 struct HEADER {
