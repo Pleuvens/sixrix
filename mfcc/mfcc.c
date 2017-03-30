@@ -1,11 +1,10 @@
 # include "mfcc.h"
-
-// Décomposer le signal en plusieurs frames
-
+  
 struct HEADER header;
 
 long num_samples;
 
+// Renvoie le tableau du signal
 double* signalArray(char *file) {
 	// File Path
 
@@ -151,6 +150,10 @@ double* preamplifier(double *signal) {
 		PA_signal[i] = signal[i] - (0.95 * signal[i-1]);
 	}
 	return PA_signal;
+}
+
+double* hannWindow(double* PA_signal) {
+
 }
 
 int main(int argc, char **argv) {

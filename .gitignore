@@ -7,3 +7,5 @@
 vgcore.*
 
 *.swp
+
+/.vs/
