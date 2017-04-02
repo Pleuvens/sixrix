@@ -5,3 +5,7 @@
 *.out
 
 vgcore.*
+
+*.swp
+
+/.vs/
