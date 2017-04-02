@@ -152,25 +152,49 @@ double* preamplifier(double *signal) {
 	return PA_signal;
 }
 
+long frameNbr() {
+	return num_samples / (floor(header.sample_rate * 0.020)); // = 20 ms
+													//(standard frame length)
+}
+
+long frameSampleNbr() {
+	return floor(header.sample_rate * 0.020);
+}
+
+//Applique hanning sur les frames
 double** hannWindow(double* PA_signal) {
-	long frameSampleNbr = floor(header.sample_rate * 0.020); // = 20 ms 
-												    //(standard frame length)
+	long frameSampleNbr = frameSampleNbr();
 	long step = floor(frameSampleNbr/2);
-	long frameNbr = num_samples / frameSampleNbr;
-	double **windows = malloc(sizeof(double) * frameNbr);
+	double **frames = malloc(sizeof(double*) * frameNbr());
 	long i = 0; // scanning index for PA_signal
-	long j = 0; // index for windows
-	long k = 0; // index for windows[j] 
+	long j = 0; // index for frames
+	long k = 0; // index for frames[j] 
 	while (i < num_samples) {
-		windows[j] = malloc(sizeof(double) * frameSampleNbr);
+		frames[j] = malloc(sizeof(double) * frameSampleNbr);
 		for (k = 0; k < frameSampleNbr; k++, i++) {
-			windows[j][k] = PA_signal[i] * 
+			frames[j][k] = PA_signal[i] * 
 						(0.54 - 0.46 * cos(2 * PI * (i / (frameSampleNbr-1))));
 		}
 		j++;
 		i -= step;
 	}
-	return windows;
+	return frames;
+}
+
+//DFT on each frames
+cplx** DFT(double** frames) {
+	long frameNbr = frameNbr();
+	long frameSampleNbr = frameSampleNbr();
+	long k = 1;
+    while ((k*2) < num_samples){
+		k *= 2;
+	}
+	cplx DFTframes = malloc(sizeof(cplx*) * frameNbr);
+	for (long i = 0; i < frameNbr; i++) {
+		DFTframes[i] = malloc(sizeof(cplx) * frameSampleNbr);
+		fft(DFTframes[i], k, PI);
+	}
+	return DFTframes;
 }
 
 int main(int argc, char **argv) {
