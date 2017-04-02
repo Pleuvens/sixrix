@@ -156,16 +156,19 @@ double** hannWindow(double* PA_signal) {
 	long frameSampleNbr = floor(header.sample_rate * 0.020); // = 20 ms 
 												    //(standard frame length)
 	long step = floor(frameSampleNbr/2);
-	long count = num_samples / frameSampleNbr;
-	double **windows = malloc(sizeof(double) * count);
-	long i;
-	while (count > 0) {
-		windows[i] = malloc(sizeof(double) * frameSampleNbr);
-		for (i = 0; i < frameSampleNbr; i++) {
-			windows[i][j] = PA_signal[i] * 
-						(0.54 - 0.46 * cos(2 * PI * (i / frameSampleNbr - 1));
+	long frameNbr = num_samples / frameSampleNbr;
+	double **windows = malloc(sizeof(double) * frameNbr);
+	long i = 0; // scanning index for PA_signal
+	long j = 0; // index for windows
+	long k = 0; // index for windows[j] 
+	while (i < num_samples) {
+		windows[j] = malloc(sizeof(double) * frameSampleNbr);
+		for (k = 0; k < frameSampleNbr; k++, i++) {
+			windows[j][k] = PA_signal[i] * 
+						(0.54 - 0.46 * cos(2 * PI * (i / (frameSampleNbr-1))));
 		}
-		i++;
+		j++;
+		i -= step;
 	}
 	return windows;
 }
