@@ -143,13 +143,13 @@ double* signalArray(char *file) {
 }
 
 // Pré-accentue le signal
-double* preamplifier(double *signal) {
-	double *PA_signal = malloc(sizeof(double) * num_samples);
-	PA_signal[0] = signal[0];
+double* pre_emphasis(double *signal) {
+	double *PE_signal = malloc(sizeof(double) * num_samples);
+	PE_signal[0] = signal[0];
 	for (int i = 1; i < num_samples; i++) {
-		PA_signal[i] = signal[i] - (0.95 * signal[i-1]);
+		PE_signal[i] = signal[i] - (0.95 * signal[i-1]);
 	}
-	return PA_signal;
+	return PE_signal;
 }
 
 long frameNbr() {
@@ -173,7 +173,7 @@ double** hannWindow(double* PA_signal) {
 		frames[j] = malloc(sizeof(double) * frameSampleNbr);
 		for (k = 0; k < frameSampleNbr; k++, i++) {
 			frames[j][k] = PA_signal[i] * 
-						(0.54 - 0.46 * cos(2 * PI * (i / (frameSampleNbr-1))));
+						(0.54 - 0.46 * cos((2 * PI * i) / (frameSampleNbr-1)));
 		}
 		j++;
 		i -= step;
@@ -197,6 +197,30 @@ cplx** DFT(double** frames) {
 	return DFTframes;
 }
 
+//Periodogram estimate of the power spectrum
+cplx** PEPS(cplx **DFTed_frames) {
+	long frameNbr = frameNbr();
+	long frameSampleNbr = frameSampleNbr();
+	for (long i = 0; i < frameNbr; i++) {
+		for (long j = 0; j < frameSampleNbr; j++) {
+			cplx Z = DFTed_frames[i][j];
+			DFTed_frames[i][j] = (1/frameSampleNbr) * 
+					((creal (Z) * creal(Z)) + (cimag (Z) * cimag (Z)));
+		}
+	}
+	return DFTed_frames;
+}
+
+double FtoM (double f) {
+	return 1127 * log(1 + (f / 700)); // base-e log (not 10)
+}
+
+double MtoF (double m) {
+	return 700 * (exp(m / 1127) - 1);
+}
+
+double* filterbank()
+
 int main(int argc, char **argv) {
 	(void)argc;
 	double *tab = signalArray(argv[1]);
@@ -205,9 +229,9 @@ int main(int argc, char **argv) {
 		printf("%f   #    ", tab[i]);
 	}
 	printf("\n\nPre-amplified signal :\n");
-	double *PA_tab = preamplifier(tab);
+	double *PE_tab = pre_emphasis(tab);
 	for (int i = 0; i < 100; i++) {
-		printf("%f   #    ", PA_tab[i]);
+		printf("%f   #    ", PE_tab[i]);
 	}
 	printf("\n");
 	return 0;
