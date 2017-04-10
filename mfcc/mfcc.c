@@ -219,8 +219,8 @@ double MtoF (double m) {
 	return 700 * (exp(m / 1127) - 1);
 }
 
-double* filterbank (double sampleRate, double FFTsize) {
-	double filterbanksNbr = 20
+double** filterbank (double sampleRate, double FFTsize) {
+	double filterbanksNbr = 26
 	double lower_f = 20;
 	double upper_f = 7600;
 	double lower_mel = FtoM(lower_f);
@@ -257,6 +257,18 @@ double* filterbank (double sampleRate, double FFTsize) {
 						(points[i + 2] - j) / (points[i + 2] - points[i + 1]);
 			if (points[i + 2] < j)
 				filterbanks[i][j] = 0;
+		}
+	}
+	return filterbanks;
+}
+
+double* filterbank_energies(double **filterbank, double filterbankNbr,
+							cplx **power_spectrum, double FFTsize) {
+	double *energies = malloc(sizeof(double) * filterbankNbr);
+	for (long i = 0; i < filterbankNbr; i++) {
+		double sum = 0;
+		for (long j = 0; j < ((FFTsize / 2) + 1); j++) {
+			sum += filterbank[i][j] * power_spectrum[i]
 		}
 	}
 }
