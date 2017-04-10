@@ -219,7 +219,47 @@ double MtoF (double m) {
 	return 700 * (exp(m / 1127) - 1);
 }
 
-double* filterbank()
+double* filterbank (double sampleRate, double FFTsize) {
+	double filterbanksNbr = 20
+	double lower_f = 20;
+	double upper_f = 7600;
+	double lower_mel = FtoM(lower_f);
+	double upper_mel = FtoM(upper_f);
+	double step = (upper_mel - lower_mel) / (filterbanksNbr + 1);
+
+	double *points = malloc(sizeof(double) * (filterbanksNbr + 2));
+	points[0] = lower_mel;
+	points[filterbanksNbr + 1] = upper_mel;
+	for (long i = 1; i < (filterbanksNbr + 1); i++) {
+		points[i] = lower_mel + step;
+		step *= 2;
+	} // *points is a pointer on mel number array
+
+	for (long i = 0; i < (filterbanksNbr + 1); i++) {
+		points[i] = MtoF(points[i]);
+	} // *points is now a pointer on frequency array
+
+	for (long i = 0; i < (filterbanksNbr + 1); i++) {
+		points[i] = floor((FFTsize + 1) * points[i] / sampleRate);
+	}
+
+	double **filterbanks = malloc(sizeof(double*) * filterbanksNbr);
+	for (long i = 0; i < filterbanksNbr; i++) {
+		filterbanks[i] = malloc(sizeof(double) * ((FFTsize / 2) + 1));
+		for (long j = 0; j < ((FFTsize / 2) + 1); j++) {
+			if (j < points[i])
+				filterbanks[i][j] = 0;
+			if (points[i] <= j && j <= points[i + 1])
+				filterbanks[i][j] = 
+								(j - points[i]) / (points[i + 1] - points[i]);
+			if (points[i + 1] <= j && j <= points[i + 2])
+				filterbanks[i][j] = 
+						(points[i + 2] - j) / (points[i + 2] - points[i + 1]);
+			if (points[i + 2] < j)
+				filterbanks[i][j] = 0;
+		}
+	}
+}
 
 int main(int argc, char **argv) {
 	(void)argc;
