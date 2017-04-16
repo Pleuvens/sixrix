@@ -3,10 +3,12 @@
 # include <string.h>
 # include <stdlib.h>
 # include <math.h>
+# include <complex.h>
 # include <err.h>
 # include <sys/types.h>
 # include <sys/stat.h>
 # include <fcntl.h>
+# include "../phonemes/fft.c"
 
 # define PI 3.14159265358979323846
 # define true 1
@@ -37,3 +39,35 @@ struct HEADER {
 												// - size of the next chunk that
 												// will be read
 };
+
+double* signalArray(char *file);
+
+double* pre_emphasis(double *signal);
+
+long frameNbr();
+
+long frameSampleNbr();
+
+double** hannWindow(double* PA_signal);
+
+cplx** DFT(double** frames);
+
+double** PEPS(cplx **DFTed_frames);
+
+double FtoM (double f);
+
+double MtoF (double m);
+
+double** filterbank(double sampleRate, double FFTsize);
+
+double coeff(double *A, double *B, long size);
+
+double** filterbank_energies(double **filterbank,
+                             double filterbanksNbr,
+                             double **power_spectrum,
+                             double FFTsize,
+                             long framenNbr);
+
+double** logged_filterbank_energies(double **filterbank_energies,
+                                    long frameNbr,
+                                    long filterbankNbr);

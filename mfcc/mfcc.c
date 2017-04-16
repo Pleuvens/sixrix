@@ -163,17 +163,17 @@ long frameSampleNbr() {
 
 //Applique hanning sur les frames
 double** hannWindow(double* PA_signal) {
-	long frameSampleNbr = frameSampleNbr();
-	long step = floor(frameSampleNbr/2);
+	long framSamplNbr = frameSampleNbr();
+	long step = floor(framSamplNbr/2);
 	double **frames = malloc(sizeof(double*) * frameNbr());
 	long i = 0; // scanning index for PA_signal
 	long j = 0; // index for frames
 	long k = 0; // index for frames[j] 
 	while (i < num_samples) {
-		frames[j] = malloc(sizeof(double) * frameSampleNbr);
-		for (k = 0; k < frameSampleNbr; k++, i++) {
+		frames[j] = malloc(sizeof(double) * framSamplNbr);
+		for (k = 0; k < framSamplNbr; k++, i++) {
 			frames[j][k] = PA_signal[i] * 
-						(0.54 - 0.46 * cos((2 * PI * i) / (frameSampleNbr-1)));
+						(0.54 - 0.46 * cos((2 * PI * i) / (framSamplNbr-1)));
 		}
 		j++;
 		i -= step;
@@ -183,32 +183,37 @@ double** hannWindow(double* PA_signal) {
 
 //DFT on each frames
 cplx** DFT(double** frames) {
-	long frameNbr = frameNbr();
-	long frameSampleNbr = frameSampleNbr();
+	long framNbr = frameNbr();
+	long framSamplNbr = frameSampleNbr();
 	long k = 1;
     while ((k*2) < num_samples){
 		k *= 2;
 	}
-	cplx DFTframes = malloc(sizeof(cplx*) * frameNbr);
-	for (long i = 0; i < frameNbr; i++) {
-		DFTframes[i] = malloc(sizeof(cplx) * frameSampleNbr);
+	cplx **DFTframes = malloc(sizeof(cplx*) * framNbr);
+	for (long i = 0; i < framNbr; i++) {
+		DFTframes[i] = malloc(sizeof(cplx) * framSamplNbr);
+		for (long j = 0; j < framSamplNbr; j++) {
+			DFTframes[i][j] = frames[i][j];
+		}
 		fft(DFTframes[i], k, PI);
 	}
 	return DFTframes;
 }
 
 //Periodogram estimate of the power spectrum
-cplx** PEPS(cplx **DFTed_frames) {
-	long frameNbr = frameNbr();
-	long frameSampleNbr = frameSampleNbr();
-	for (long i = 0; i < frameNbr; i++) {
-		for (long j = 0; j < frameSampleNbr; j++) {
+double** PEPS(cplx **DFTed_frames) {
+	long framNbr = frameNbr();
+	long framSamplNbr = frameSampleNbr();
+	double **power_spec = malloc(sizeof(double*) * framNbr);
+	for (long i = 0; i < framNbr; i++) {
+		power_spec[i] = malloc(sizeof(double) * framSamplNbr); 
+		for (long j = 0; j < framSamplNbr; j++) {
 			cplx Z = DFTed_frames[i][j];
-			DFTed_frames[i][j] = (1/frameSampleNbr) * 
+			power_spec[i][j] = (1/framSamplNbr) * 
 					((creal (Z) * creal(Z)) + (cimag (Z) * cimag (Z)));
 		}
 	}
-	return DFTed_frames;
+	return power_spec;
 }
 
 double FtoM (double f) {
@@ -220,7 +225,7 @@ double MtoF (double m) {
 }
 
 double** filterbank (double sampleRate, double FFTsize) {
-	double filterbanksNbr = 26
+	long filterbanksNbr = 26;
 	double lower_f = 20;
 	double upper_f = 7600;
 	double lower_mel = FtoM(lower_f);
@@ -262,15 +267,41 @@ double** filterbank (double sampleRate, double FFTsize) {
 	return filterbanks;
 }
 
-double* filterbank_energies(double **filterbank, double filterbankNbr,
-							cplx **power_spectrum, double FFTsize) {
-	double *energies = malloc(sizeof(double) * filterbankNbr);
-	for (long i = 0; i < filterbankNbr; i++) {
-		double sum = 0;
-		for (long j = 0; j < ((FFTsize / 2) + 1); j++) {
-			sum += filterbank[i][j] * power_spectrum[i]
+double coeff(double *A, double *B, long size) {
+	double coeff = 0;
+	for (long i = 0; i < size; i++) {
+		coeff += A[i] * B[i];
+	}
+	return coeff;
+}
+
+double** filterbank_energies(double **filterbank,
+							double filterbanksNbr,
+							double **power_spectrum,
+							double FFTsize,
+							long frameNbr) {
+
+	double **energies = malloc(sizeof(double*) * frameNbr);
+	for (long i = 0; i < frameNbr; i++) {
+		energies[i] = malloc(sizeof(double) * filterbanksNbr);
+		for (long j = 0; j < filterbanksNbr; j++) {
+			energies[i][j] = coeff(power_spectrum[i], filterbank[j],
+								   (FFTsize / 2) + 1); 
 		}
 	}
+	return energies;
+}
+
+double** logged_filterbank_energies(double **filterbank_nrgies,
+									long frameNbr,
+									long filterbankNbr) {
+
+	for (long i = 0; i < frameNbr; i++) {
+		for (long j = 0; j < filterbankNbr; j++) {
+			filterbank_nrgies[i][j] = log(filterbank_nrgies[i][j]);
+		}
+	}
+	return filterbank_nrgies;
 }
 
 int main(int argc, char **argv) {
