@@ -163,17 +163,17 @@ long frameSampleNbr() {
 
 //Applique hanning sur les frames
 double** hannWindow(double* PA_signal) {
-	long framSamplNbr = frameSampleNbr();
-	long step = floor(framSamplNbr/2);
+	long frameSampleNbr_ = frameSampleNbr();
+	long step = floor(frameSampleNbr_ / 2);
 	double **frames = malloc(sizeof(double*) * frameNbr());
 	long i = 0; // scanning index for PA_signal
 	long j = 0; // index for frames
 	long k = 0; // index for frames[j] 
 	while (i < num_samples) {
-		frames[j] = malloc(sizeof(double) * framSamplNbr);
-		for (k = 0; k < framSamplNbr; k++, i++) {
+		frames[j] = malloc(sizeof(double) * frameSampleNbr_);
+		for (k = 0; k < frameSampleNbr_; k++, i++) {
 			frames[j][k] = PA_signal[i] * 
-						(0.54 - 0.46 * cos((2 * PI * i) / (framSamplNbr-1)));
+					(0.54 - 0.46 * cos((2 * PI * i) / (frameSampleNbr_ - 1)));
 		}
 		j++;
 		i -= step;
@@ -183,16 +183,16 @@ double** hannWindow(double* PA_signal) {
 
 //DFT on each frames
 cplx** DFT(double** frames) {
-	long framNbr = frameNbr();
-	long framSamplNbr = frameSampleNbr();
+	long frameNbr_ = frameNbr();
+	long frameSampleNbr_ = frameSampleNbr();
 	long k = 1;
     while ((k*2) < num_samples){
 		k *= 2;
 	}
-	cplx **DFTframes = malloc(sizeof(cplx*) * framNbr);
-	for (long i = 0; i < framNbr; i++) {
-		DFTframes[i] = malloc(sizeof(cplx) * framSamplNbr);
-		for (long j = 0; j < framSamplNbr; j++) {
+	cplx **DFTframes = malloc(sizeof(cplx*) * frameNbr_);
+	for (long i = 0; i < frameNbr_; i++) {
+		DFTframes[i] = malloc(sizeof(cplx) * frameSampleNbr_);
+		for (long j = 0; j < frameSampleNbr_ ; j++) {
 			DFTframes[i][j] = frames[i][j];
 		}
 		fft(DFTframes[i], k, PI);
@@ -202,14 +202,14 @@ cplx** DFT(double** frames) {
 
 //Periodogram estimate of the power spectrum
 double** PEPS(cplx **DFTed_frames) {
-	long framNbr = frameNbr();
-	long framSamplNbr = frameSampleNbr();
-	double **power_spec = malloc(sizeof(double*) * framNbr);
-	for (long i = 0; i < framNbr; i++) {
-		power_spec[i] = malloc(sizeof(double) * framSamplNbr); 
-		for (long j = 0; j < framSamplNbr; j++) {
+	long frameNbr_ = frameNbr();
+	long frameSampleNbr_ = frameSampleNbr();
+	double** power_spec = malloc(sizeof(double*) * frameNbr_);
+	for (long i = 0; i < frameNbr_; i++) {
+		power_spec[i] = malloc(sizeof(double) * frameSampleNbr_); 
+		for (long j = 0; j < frameSampleNbr_; j++) {
 			cplx Z = DFTed_frames[i][j];
-			power_spec[i][j] = (1/framSamplNbr) * 
+			power_spec[i][j] = (1/frameSampleNbr_) * 
 					((creal (Z) * creal(Z)) + (cimag (Z) * cimag (Z)));
 		}
 	}
@@ -276,33 +276,34 @@ double coeff(double *A, double *B, long size) {
 }
 
 double** filterbank_energies(double **filterbank,
-							double filterbanksNbr,
+							long filterbanksNbr,
 							double **power_spectrum,
 							double FFTsize,
-							long frameNbr) {
+							long frameNbr_) {
 
-	double **energies = malloc(sizeof(double*) * frameNbr);
-	for (long i = 0; i < frameNbr; i++) {
+	double **energies = malloc(sizeof(double) * frameNbr_);
+	for (long i = 0; i < frameNbr_; i++) {
 		energies[i] = malloc(sizeof(double) * filterbanksNbr);
 		for (long j = 0; j < filterbanksNbr; j++) {
-			energies[i][j] = coeff(power_spectrum[i], filterbank[j],
-								   (FFTsize / 2) + 1); 
+			energies[i][j] = coeff(power_spectrum[i], filterbank[j], 
+									(FFTsize / 2) + 1); 
 		}
 	}
 	return energies;
 }
 
 double** logged_filterbank_energies(double **filterbank_nrgies,
-									long frameNbr,
+									long frameNbr_,
 									long filterbankNbr) {
 
-	for (long i = 0; i < frameNbr; i++) {
+	for (long i = 0; i < frameNbr_; i++) {
 		for (long j = 0; j < filterbankNbr; j++) {
 			filterbank_nrgies[i][j] = log(filterbank_nrgies[i][j]);
 		}
 	}
 	return filterbank_nrgies;
 }
+
 
 int main(int argc, char **argv) {
 	(void)argc;

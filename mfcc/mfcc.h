@@ -3,7 +3,6 @@
 # include <string.h>
 # include <stdlib.h>
 # include <math.h>
-# include <complex.h>
 # include <err.h>
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -58,16 +57,16 @@ double FtoM (double f);
 
 double MtoF (double m);
 
-double** filterbank(double sampleRate, double FFTsize);
+double** filterbank (double sampleRate, double FFTsize);
 
 double coeff(double *A, double *B, long size);
 
 double** filterbank_energies(double **filterbank,
-                             double filterbanksNbr,
+                             long filterbanksNbr,
                              double **power_spectrum,
                              double FFTsize,
-                             long framenNbr);
+                             long frameNbr_);
 
 double** logged_filterbank_energies(double **filterbank_energies,
-                                    long frameNbr,
+                                    long frameNbr_,
                                     long filterbankNbr);
