@@ -597,8 +597,8 @@ void saveVal(struct automate *aut)
 	char *path = "";
 	FILE *f = fopen(path,"w");
 	//int t_index = 0;
-	//fprintf("%d\n",aut->nb_states);
-	//fprintf("%d\n",aut->nb_k);
+	fprintf("%d\n",aut->nb_states);
+	fprintf("%d\n",aut->nb_k);
 	for(int i = 0; i < aut->nb_states; ++i)
 	{
 		//t_index = i * aut->nb_states;
@@ -614,6 +614,35 @@ void saveVal(struct automate *aut)
 		for(int k = 0; k < aut->nb_k; ++k)
 		{
 			fprintf(f,"%f ", *(double*)(aut->states[i].b[k].item2));
+		}
+		//fprintf("\n");
+	}
+	fclose(f);
+}
+
+void loadVal(double **proba, double **A, double **B, int *nb_states, int *nb_k)
+{
+	char *path = "";
+	FILE *f = fopen(path,"r");
+	
+	fscanf(f,"%d",nb_states);
+	fscanf(f,"%d",nb_k);
+	
+	for(int i = 0; i < aut->nb_states; ++i)
+	{
+		//t_index = i * aut->nb_states;
+		for(int k = 0; k < aut->nb_states; ++k)
+		{
+			fscanf(f,"%f", A[i * *nb_states + k]);
+		}
+		//fprintf("\n");
+	}
+	for(int i = 0; i < aut->nb_states; ++i)
+	{
+		//t_index = i * aut->nb_states;
+		for(int k = 0; k < aut->nb_k; ++k)
+		{
+			fscanf(f,"%f", B[i * *nb_states + k]);
 		}
 		//fprintf("\n");
 	}
