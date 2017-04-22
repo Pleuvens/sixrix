@@ -22,7 +22,7 @@ int showmenu(SDL_Surface* screen, TTF_Font* font){
   selected[2] = 0;
   selected[3] = 0;
   SDL_Color color1 =  {.r = 0, .g = 0, .b = 0};
-  SDL_Color color2 = {.r = 255, .g = 0, .b = 0};
+  SDL_Color color2 = {.r = 0, .g = 0, .b = 255};
 
   SDL_Surface* background = SDL_LoadBMP("fond.bmp");
 
