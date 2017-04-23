@@ -1,3 +1,6 @@
+# ifndef MFCC_H
+# define MFCC_H
+
 # include <unistd.h>
 # include <stdio.h>
 # include <string.h>
@@ -70,3 +73,6 @@ double** filterbank_energies(double **filterbank,
 double** logged_filterbank_energies(double **filterbank_energies,
                                     long frameNbr_,
                                     long filterbankNbr);
+
+double** MFCC(char *file);
+#endif

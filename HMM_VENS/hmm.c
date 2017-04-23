@@ -597,8 +597,8 @@ void saveVal(struct automate *aut)
 	char *path = "";
 	FILE *f = fopen(path,"w");
 	//int t_index = 0;
-	fprintf("%d\n",aut->nb_states);
-	fprintf("%d\n",aut->nb_k);
+	fprintf(f,"%d\n",aut->nb_states);
+	fprintf(f,"%d\n",aut->nb_k);
 	for(int i = 0; i < aut->nb_states; ++i)
 	{
 		//t_index = i * aut->nb_states;

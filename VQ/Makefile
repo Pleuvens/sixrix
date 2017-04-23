@@ -1,20 +1,24 @@
-# Simple SDL mini code
+#
+# Makefile contents
+#
+CC= gcc
 
-CC=gcc
 CPPFLAGS= -lm -rdynamic -MMD `pkg-config --cflags gtk+-3.0 sdl`
 CFLAGS= -Wall -Werror -Wextra -std=c99 -pedantic -g3
 LDFLAGS=
 LDLIBS= `pkg-config --libs gtk+-3.0 sdl` -lSDL_image -lm -rdynamic
 
-SRC1= ../VQ/vq.c mfcc.c
-OBJ1= ${SRC1:.c=.o}
+SRC= vq.c ../mfcc/mfcc.c
+OBJ= ${SRC:.c=.o}
+DEP= ${SRC:.c=.d}
 
-all: mfcc
+all: vq
 
-main: ${OBJ1}
+-include ${DEP}
+
+GUI: ${OBJ}
 
 clean:
-	rm -f *~ *.o
-	rm -f *~ *.d mfcc
+	rm -f ${OBJ} ${DEP} vq vgcore.*
 
 # END
