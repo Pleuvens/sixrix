@@ -1,64 +1,21 @@
-# EPITA Project S3 - 2016/2017
-# Makefile
-# TODO : Put names
-
-# Compilers and options
+#Makefile
 CC=gcc
-CPPFLAGS= `pkg-config --cflags sdl gtk+-3.0` -MMD
-CFLAGS= -Wall -Wextra -std=c99 -pedantic -O2
+CPPFLAGS= -MMD -D_XOPEN_SOURCE=500
+CFLAGS= -Wall -Wextra -std=c99 -g -lm
 LDFLAGS=
-LDLIBS=`pkg-config --libs sdl` `pkg-config  --libs gtk+-3.0 gmodule-2.0` -lSDL -lrt  -lm   -lasound -ljack -lpthread -lportaudio
+LDLIBS=	 -lm -lrt -lasound  -lpthread -lportaudio -lsndfile
 
+SRC= record.c
+OBJ= ${SRC:.c=.o}
+DEP= ${SRC:.c=.d}
 
-# make		-> Build the project
-# make remove 	-> Remove .o .d and exe
-# make clean 	-> Remove .o only
-# make remdep	-> Remove .d only
+all: record
 
-# ========== NO TOUCHY UNDER THE LINEY ========== #
+-include ${DEP}
 
-# Directories
-SRCDIR   = src
-OBJDIR   = obj
-BINDIR   = bin
+hanning: ${OBJ}
 
-# Target
-TARGET = record.c
+clean:
+	rm -f ${OBJ} ${DEP} record
 
-# Sources
-SOURCES  := $(wildcard $(SRCDIR)/*.c)
-INCLUDES := $(wildcard $(SRCDIR)/*.h)
-DEPENDS  := $(wildcard $(OBJDIR)/*.d)
-OBJECTS  := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
-rm       = rm -f
-
-all: makedirs $(BINDIR)/$(TARGET)
-
-$(BINDIR)/$(TARGET): $(OBJECTS)
-	@$(CC) $(OBJECTS) $(LDLIBS) -o $@
-	@echo "Linking complete!"
-
-$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c
-	@$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
-	@echo -e "[\e[92mOK\e[0m] Compiled "$<""
-
-makedirs:
-	@mkdir -p $(OBJDIR)
-	@mkdir -p $(BINDIR)
-	@echo -e "[\e[92mOK\e[0m] Created directories : $(BINDIR) $(OBJDIR)"
-
-.PHONEY: remove
-remove:
-	@$(rm) $(OBJECTS)
-	@echo -e "[\e[92mOK\e[0m] Cleanup complete!"
-
-.PHONEY: clean
-clean: remove remdep
-	@$(rm) $(BINDIR)/$(TARGET)
-	@echo -e "[\e[92mOK\e[0m] Executable removed!"
-
-.PHONEY: remdep
-remdep:
-	@$(rm) $(DEPENDS)
-	@echo -e "[\e[92mOK\e[0m] Dependencies removed!"
 # END

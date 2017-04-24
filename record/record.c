@@ -94,6 +94,8 @@ int recordFLAC(AudioData data, const char *fileName)
     int numSamples = data.maxFrameIndex * data.numberOfChannels;
     int numBytes = numSamples * sizeof(data.recordedSamples[0]);
 
+    printf("numSamples=%d\tnumBytes=%d\n",numSamples,numBytes);
+
     data.recordedSamples = calloc(numSamples, numBytes); // From now on, recordedSamples is initialised.
     if(!data.recordedSamples)
     {
@@ -152,10 +154,10 @@ done:
 }
 
 
-int main(int argc, char const *argv[]) {
+int main() {
 
 
-  AudioData data = initAudioData(44100,5,30);
+  AudioData data = initAudioData(44100,2,30);
   recordFLAC(data,"test.wav");
 
   return 0;
