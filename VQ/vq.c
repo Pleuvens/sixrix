@@ -5,69 +5,72 @@
 
 # include "../mfcc/mfcc.c"
 
-double dist(double *x, double *y, int len)
+double dist(double *x, double y, int len)
 {
 	double res = 0;
 	for(int i = 0; i < len; i++)
 	{
-		res += x[i] * x[i] - y[i] * y[i];
+		res += x[i] - y * x[i] - y;
 	}
 	return sqrt(res);
 }
 
-double thresh(double **c1, double **c2, int len)
+double thresh(double *c1, double *c2, int len)
 {
 	if(!c2)
 	{
 		return 1.0;
 	}
 	double res = 0;
-	int len2 = 13;
 	for(int i = 0; i < len; i++)
 	{
-		res += dist(c1[i],c2[i],len2);
+		double tmp = c1[i] - c2[i];
+		if(tmp < 0)
+		{
+			tmp *= -1;
+		}
+		res += tmp;
 	}
 	return res;
 }
 
-void change(double **c1, double **c2, int l1, int l2)
+void change(double *c1, double *c2, int l1)
 {
 	for(int i = 0; i < l1; ++i)
 	{
-		for(int j = 0; j < l2; ++j)
-		{
-			c1[i][j] = c2[i][j];
-		}
-		free(c2[i]);
+		c1[i] = c2[i];		
 	}
 }
 
-void generate(double **vects, double **codeword)
+void generate(double ***vects, double *codeword, long *len_o)
 {
 	int len = 13;
-	int M = 1;
-	int nb_class = 1;
-	double **codeword2 = NULL;
+	int M = 4;
+	int nb_class = 2;
+	double *codeword2 = NULL;
 	int *vertex_by_class = calloc(nb_class,sizeof(int));
 	while(thresh(codeword,codeword2,nb_class) > 0.1)
 	{
 		for(int i = 0; i < M; i++)
 		{
-			int index = 0;
-			double min = 9999999;
-			for(int j = 0; j < nb_class; j++)
+			for(long k = 0; k < len_o[M]; ++k)
 			{
-				double tmp = dist(vects[i],codeword[j],len);
-				if(tmp < min)
+				int index = 0;
+				double min = 9999999;
+				for(int j = 0; j < nb_class; j++)
 				{
-					min = tmp;
-					index = j;
+					double tmp = dist(vects[i][k],codeword[j],len);
+					if(tmp < min)
+					{
+						min = tmp;
+						index = j;
+					}
 				}
+				vertex_by_class[index] += 1;
 			}
-			vertex_by_class[index] += 1;
 		}
 		codeword2 = calloc(nb_class,sizeof(double*));
-		for(int i = 0; i < nb_class; i++)
+		/*for(int i = 0; i < nb_class; i++)
 		{
 			codeword2[i] = calloc(len,sizeof(double));
 			for(int k = 0; k < len; k++)
@@ -76,18 +79,36 @@ void generate(double **vects, double **codeword)
 				double denom = 0;
 				for(int j = 0; j < M; ++j)
 				{
-					num = vects[i][j] * codeword[i][j];
+					num = vects  codeword[i][j];
 					denom = codeword[i][j];
 				}
 				codeword2[i][k] = num/denom;
 			}
+		}*/
+		for(int j = 0; j < nb_class; ++j)
+		{
+			//codeword2[j] = calloc(len,sizeof(double));
+			double num = 0;
+			double denom = 0;
+			for(int i = 0; i < M; ++i)
+			{
+				for(int k = 0; k < len_o[M]; ++k)
+				{
+					for(int n = 0; n < len; ++n)
+					{
+						num += vertex_by_class[i] * vects[i][k][n];
+					}
+					denom += vertex_by_class[i];
+				}
+			}
+			codeword[j] = num/denom;
 		}
-		change(codeword,codeword2,M,len);
+		change(codeword,codeword2,nb_class);
 		free(codeword2);
 	}
 }
 
-int searchvk(double *o,double **codeword, int nb_class)
+int searchvk(double *o,double *codeword, int nb_class)
 {
 	int index = 0;
 	int len = 13;
@@ -104,83 +125,85 @@ int searchvk(double *o,double **codeword, int nb_class)
 	return index;
 }
 
-void saveVal(double **codeword,int l1, int l2)
+void saveVal(double *codeword,int l1)
 {
 	char *path = "./vqsave";
 	FILE *f = fopen(path,"w");
 	
 	fprintf(f,"%d\n",l1);
-	fprintf(f,"%d\n",l2);
 
 	for(int i = 0; i < l1; i++)
 	{
-		for(int j = 0; j < l2; j++)
-		{
-			fprintf(f,"%f ", codeword[i][j]);
-		}
+		fprintf(f,"%f ", codeword[i]);
 	}
 	fclose(f);
 }
 
-void loadVal(double **codeword, int *l1, int *l2)
+void loadVal(double *codeword, int *l1)
 {
 	char *path = "./vqsave";
 	FILE *f = fopen(path,"r");
 	
 	fscanf(f,"%d",l1);
-	fscanf(f,"%d",l2);
 	codeword = calloc(*l1,sizeof(double*));
 	for(int i = 0; i < *l1; i++)
 	{
-		codeword[i] = calloc(*l2,sizeof(double));
-		for(int j = 0; j < *l2; j++)
-		{
-			fscanf(f,"%lf",codeword[i]+j);
-		}
+		fscanf(f,"%lf",codeword+i);
 	}
 }
 
 char* state_match(int index)
 {
-	int val = index + 3;
-	index = val;
-	//FIXME
-	return "a";
+	char *ph = NULL;
+	switch(index)
+	{
+		case 0:
+			ph = "oo";
+			break;
+		default:
+			ph = "null";
+			break;
+	}
+	return ph;
 }
 
-void randomCW(double **cw)
+void randomCW(double *cw)
 {
 	for(int i = 0; i < 2; i++)
 	{
-		cw[i] = calloc(13,sizeof(double));
-		for(int j = 0; j < 13; j++)
-		{
-			cw[i][j] = (double)(99*(double)rand()/RAND_MAX);
-		}
+		cw[i] = (double)(99*(double)rand()/RAND_MAX);
 	}
 }
 
-char **mainProcess(double **o)
+char **mainProcess(double **o, long len)
 {
 	//Load file
-	int nb_class = 1;
-	int len = 13;
+	int nb_class = 2;
 	extern long frameNbr_;
-	int len_o = (int)frameNbr_;
-	double **codeword = NULL;	
+	long *len_o = calloc(nb_class,sizeof(long));
+	double *codeword = NULL;	
 	FILE *f = NULL;
 	if((f = fopen("./vqsave","r")))
 	{
 		fclose(f);
-		loadVal(codeword,&nb_class,&len);
+		loadVal(codeword,&nb_class);
 	} else {
 		codeword = calloc(nb_class,sizeof(double*));	
 		randomCW(codeword);	
-		generate(o,codeword);
-		saveVal(codeword,nb_class,len);
+		double ***vects = calloc(4,sizeof(double**));	
+		vects[0] = MFCC("../phonemes/193319__margo-heston__oo.wav");
+		len_o[0] = frameNbr_;
+		vects[1] = MFCC("../phonemes/193284__margo-heston__pp.wav");
+		len_o[1] = frameNbr_;
+		vects[2] = MFCC("../phonemes/193266__margo-heston__eh.wav");
+		len_o[2] = frameNbr_;
+		vects[3] = MFCC("../phonemes/193280__margo-heston__nn.wav");
+		len_o[3] = frameNbr_;
+		generate(vects,codeword,len_o);
+		saveVal(codeword,nb_class);
 	}
-	char **res = calloc(len_o,sizeof(char*));
-	for(int i = 0; i < len_o; i++)
+	char **res = calloc(len,sizeof(char*));
+	for(long i = 0; i < len; i++)
 	{
 		int index = searchvk(o[i],codeword,nb_class);
 		char *class = state_match(index);
@@ -199,8 +222,14 @@ int main()
 	193266__margo-heston__eh.wav
 	193280__margo-heston__nn.wav
 	*/
+	extern long frameNbr_;
 	double **oo = MFCC("../phonemes/193319__margo-heston__oo.wav");
-	mainProcess(oo);
+	long l = frameNbr_;
+	char **r = mainProcess(oo,l);
+	for(int i = 0; i < l; ++i)
+	{
+		printf("%s\n",r[i]);
+	}
 	/*
 	double **pp = MFCC("193284__margo-heston__pp.wav");
 	double **eh = MFCC("193266__margo-heston__eh.wav");
