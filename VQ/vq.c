@@ -45,11 +45,11 @@ void change(double **c1, double **c2, int l1, int l2)
 void generate(double **vects, double **codeword)
 {
 	int len = 13;
-	int M = 13;
-	int nb_class = 2;
+	int M = 1;
+	int nb_class = 1;
 	double **codeword2 = NULL;
 	int *vertex_by_class = calloc(nb_class,sizeof(int));
-	while(thresh(codeword,codeword2,M) > 0.1)
+	while(thresh(codeword,codeword2,nb_class) > 0.1)
 	{
 		for(int i = 0; i < M; i++)
 		{
@@ -152,7 +152,7 @@ void randomCW(double **cw)
 {
 	for(int i = 0; i < 2; i++)
 	{
-		cw = calloc(13,sizeof(double));
+		cw[i] = calloc(13,sizeof(double));
 		for(int j = 0; j < 13; j++)
 		{
 			cw[i][j] = (double)(99*(double)rand()/RAND_MAX);
@@ -163,9 +163,10 @@ void randomCW(double **cw)
 char **mainProcess(double **o)
 {
 	//Load file
-	int nb_class = 2;
+	int nb_class = 1;
 	int len = 13;
-	int len_o = 10;
+	extern long frameNbr_;
+	int len_o = (int)frameNbr_;
 	double **codeword = NULL;	
 	FILE *f = NULL;
 	if((f = fopen("./vqsave","r")))
