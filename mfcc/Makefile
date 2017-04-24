@@ -2,7 +2,7 @@
 
 CC=gcc
 CPPFLAGS= -lm -rdynamic -MMD `pkg-config --cflags gtk+-3.0 sdl`
-CFLAGS= -Wall -Werror -Wextra -std=c99 -pedantic -g3
+CFLAGS= -Wall -Werror -Wextra -std=c99 -pedantic -g
 LDFLAGS=
 LDLIBS= `pkg-config --libs gtk+-3.0 sdl` -lSDL_image -lm -rdynamic
 
