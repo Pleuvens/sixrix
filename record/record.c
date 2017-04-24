@@ -49,7 +49,7 @@ static int recordCallback(const void *inputBuffer, void *outputBuffer, unsigned 
     (void) userData;
 
     if(framesLeft < framesPerBuffer)
-    {
+  {
         framesToCalc = framesLeft;
         finished = paComplete;
     }
@@ -151,9 +151,11 @@ done:
     return err;
 }
 
+
 int main(int argc, char const *argv[]) {
 
-  AudioData data = initAudioData(44100,1,30);
+
+  AudioData data = initAudioData(44100,5,30);
   recordFLAC(data,"test.wav");
 
   return 0;

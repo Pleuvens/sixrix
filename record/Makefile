@@ -7,7 +7,7 @@ CC=gcc
 CPPFLAGS= `pkg-config --cflags sdl gtk+-3.0` -MMD
 CFLAGS= -Wall -Wextra -std=c99 -pedantic -O2
 LDFLAGS=
-LDLIBS=`pkg-config --libs sdl` `pkg-config  --libs gtk+-3.0 gmodule-2.0` -lSDL  -lm  -lrt -lasound -ljack -lpthread -lportaudio
+LDLIBS=`pkg-config --libs sdl` `pkg-config  --libs gtk+-3.0 gmodule-2.0` -lSDL -lrt  -lm   -lasound -ljack -lpthread -lportaudio
 
 
 # make		-> Build the project
@@ -23,7 +23,7 @@ OBJDIR   = obj
 BINDIR   = bin
 
 # Target
-TARGET = main
+TARGET = record.c
 
 # Sources
 SOURCES  := $(wildcard $(SRCDIR)/*.c)
