@@ -6,7 +6,7 @@ long num_samples;
 
 double sampleRate;
 
-double FFTsize = 512;
+long FFTsize = 512;
 
 long frameNbr_;
 
@@ -191,171 +191,201 @@ double** hannWindow(double* PA_signal) {
   return frames;
 }
 
+/*cplx DFT_i(double *hannWindow_i) {
+	cplx DFT_i = malloc(sizeof(cplx) * FFTsize);
+	long frameSampleNbr_ = frameSampleNbr();
+	for (long j = 0; j < FFTsize; j++) {
+		cplx sum;
+		for (long n = 0; n < frameSampleNbr_; n++) {
+			sum += hannWindow_i[n] * exp()
+		}
+	}
+} */
+
 //DFT on each frames
 cplx** DFT(double** frames) {
-  long frameNbr_ = frameNbr();
-  long frameSampleNbr_ = frameSampleNbr();
-  long k = 1;
-  while ((k*2) < num_samples){
-    k *= 2;
-  }
-  cplx **DFTframes = malloc(sizeof(cplx*) * frameNbr_);
-  for (long i = 0; i < frameNbr_; i++) {
-    DFTframes[i] = malloc(sizeof(cplx) * frameSampleNbr_);
-    for (long j = 0; j < frameSampleNbr_ ; j++) {
-      DFTframes[i][j] = frames[i][j];
-    }
-    fft(DFTframes[i], k, PI);
-  }
-  return DFTframes;
+	long frameNbr_ = frameNbr();
+	long frameSampleNbr_ = frameSampleNbr();
+	/*
+	long k = 1;
+	while ((k*2) < num_samples){
+		k *= 2;
+	}
+	*/
+
+	long k = 1;
+	while ((k * 2) < frameSampleNbr_ ) {
+		k *= 2;
+	}
+	k *= 2;
+
+	cplx **DFTframes = malloc(sizeof(cplx*) * frameNbr_);
+	for (long i = 0; i < frameNbr_; i++) {
+		DFTframes[i] = malloc(sizeof(cplx) * k);
+		for (long j = 0; j < frameSampleNbr_; j++) {
+			DFTframes[i][j] = frames[i][j];
+		}
+		for (long j = frameSampleNbr_; j < k; j++) {
+			DFTframes[i][j] = 0;
+		}
+		fft(DFTframes[i], k, PI);
+		cplx DFT_[FFTsize];
+		for (long l = 0; l < FFTsize; l++) {
+			DFT_[l] = DFTframes[i][l];
+		}
+		DFTframes[i] = DFT_;
+	}
+	return DFTframes;
 }
 
 //Periodogram estimate of the power spectrum
 double** PEPS(cplx **DFTed_frames) {
-  long frameNbr_ = frameNbr();
-  long frameSampleNbr_ = frameSampleNbr();
-  double** power_spec = malloc(sizeof(double*) * frameNbr_);
-  for (long i = 0; i < frameNbr_; i++) {
-    power_spec[i] = malloc(sizeof(double) * frameSampleNbr_); 
-    for (long j = 0; j < frameSampleNbr_; j++) {
-      cplx Z = DFTed_frames[i][j];
-      power_spec[i][j] = (1/frameSampleNbr_) * 
-	((creal (Z) * creal(Z)) + (cimag (Z) * cimag (Z)));
-    }
-  }
-  return power_spec;
+	long frameNbr_ = frameNbr();
+	double** power_spec = malloc(sizeof(double*) * frameNbr_);
+	for (long i = 0; i < frameNbr_; i++) {
+		power_spec[i] = malloc(sizeof(double) * FFTsize); 
+		for (long j = 0; j < FFTsize; j++) {
+			cplx Z = DFTed_frames[i][j];
+			power_spec[i][j] = (1 / FFTsize) * 
+				((creal (Z) * creal(Z)) + (cimag (Z) * cimag (Z)));
+		}
+	}
+	return power_spec;
 }
 
 double FtoM (double f) {
-  return 1127 * log(1 + (f / 700)); // base-e log (not 10)
+	return 1127 * log(1 + (f / 700)); // base-e log (not 10)
 }
 
 double MtoF (double m) {
-  return 700 * (exp(m / 1127) - 1);
+	return 700 * (exp(m / 1127) - 1);
 }
 
 double** filterbank (double sampleRate, double FFTsize) {
-  long filterbanksNbr = 26;
-  double lower_f = 20;
-  double upper_f = 7600;
-  double lower_mel = FtoM(lower_f);
-  double upper_mel = FtoM(upper_f);
-  double step = (upper_mel - lower_mel) / (filterbanksNbr + 1);
+	long filterbanksNbr = 26;
+	double lower_f = 20;
+	double upper_f = 7600;
+	double lower_mel = FtoM(lower_f);
+	double upper_mel = FtoM(upper_f);
+	double step = (upper_mel - lower_mel) / (filterbanksNbr + 1);
 
-  double *points = malloc(sizeof(double) * (filterbanksNbr + 2));
-  points[0] = lower_mel;
-  points[filterbanksNbr + 1] = upper_mel;
-  for (long i = 1; i < (filterbanksNbr + 1); i++) {
-    points[i] = lower_mel + step;
-    step *= 2;
-  } // *points is a pointer on mel number array
+	double *points = malloc(sizeof(double) * (filterbanksNbr + 2));
+	points[0] = lower_mel;
+	points[filterbanksNbr + 1] = upper_mel;
+	for (long i = 1; i < (filterbanksNbr + 1); i++) {
+		points[i] = lower_mel + step;
+		step *= 2;
+	} // *points is a pointer on mel number array
 
-  for (long i = 0; i < (filterbanksNbr + 1); i++) {
-    points[i] = MtoF(points[i]);
-  } // *points is now a pointer on frequency array
+	for (long i = 0; i < (filterbanksNbr + 1); i++) {
+		points[i] = MtoF(points[i]);
+	} // *points is now a pointer on frequency array
 
-  for (long i = 0; i < (filterbanksNbr + 1); i++) {
-    points[i] = floor((FFTsize + 1) * points[i] / sampleRate);
-  }
+	for (long i = 0; i < (filterbanksNbr + 1); i++) {
+		points[i] = floor((FFTsize + 1) * points[i] / sampleRate);
+	}
 
-  double **filterbanks = malloc(sizeof(double*) * filterbanksNbr);
-  for (long i = 0; i < filterbanksNbr; i++) {
-    filterbanks[i] = malloc(sizeof(double) * ((FFTsize / 2) + 1));
-    for (long j = 0; j < ((FFTsize / 2) + 1); j++) {
-      if (j < points[i])
-	filterbanks[i][j] = 0;
-      if (points[i] <= j && j <= points[i + 1])
-	filterbanks[i][j] = 
-	  (j - points[i]) / (points[i + 1] - points[i]);
-      if (points[i + 1] <= j && j <= points[i + 2])
-	filterbanks[i][j] = 
-	  (points[i + 2] - j) / (points[i + 2] - points[i + 1]);
-      if (points[i + 2] < j)
-	filterbanks[i][j] = 0;
-    }
-  }
-  return filterbanks;
+	double **filterbanks = malloc(sizeof(double*) * filterbanksNbr);
+	for (long i = 0; i < filterbanksNbr; i++) {
+		filterbanks[i] = malloc(sizeof(double) * ((FFTsize / 2) + 1));
+		for (long j = 0; j < ((FFTsize / 2) + 1); j++) {
+			if (j < points[i])
+				filterbanks[i][j] = 0;
+			if (points[i] <= j && j <= points[i + 1])
+				filterbanks[i][j] = 
+					(j - points[i]) / (points[i + 1] - points[i]);
+			if (points[i + 1] <= j && j <= points[i + 2])
+				filterbanks[i][j] = 
+					(points[i + 2] - j) / (points[i + 2] - points[i + 1]);
+			if (points[i + 2] < j)
+				filterbanks[i][j] = 0;
+		}
+	}
+	return filterbanks;
 }
 
 double coeff(double *A, double *B, long size) {
-  double coeff = 0;
-  for (long i = 0; i < size; i++) {
-    coeff += A[i] * B[i];
-  }
-  return coeff;
+	double coeff = 0;
+	for (long i = 0; i < size; i++) {
+		coeff += A[i] * B[i];
+	}
+	return coeff;
 }
 
 double** filterbank_energies(double **filterbank,
-    long filterbanksNbr,
-    double **power_spectrum,
-    double FFTsize,
-    long frameNbr_) {
+		long filterbanksNbr,
+		double **power_spectrum,
+		double FFTsize,
+		long frameNbr_) {
 
-  double **energies = malloc(sizeof(double*) * frameNbr_);
-  for (long i = 0; i < frameNbr_; i++) {
-    energies[i] = malloc(sizeof(double) * filterbanksNbr);
-    for (long j = 0; j < filterbanksNbr; j++) {
-      energies[i][j] = coeff(power_spectrum[i], filterbank[j], 
-	  (FFTsize / 2) + 1); 
-    }
-  }
-  return energies;
+	double **energies = malloc(sizeof(double*) * frameNbr_);
+	for (long i = 0; i < frameNbr_; i++) {
+		energies[i] = malloc(sizeof(double) * filterbanksNbr);
+		for (long j = 0; j < filterbanksNbr; j++) {
+			energies[i][j] = coeff(power_spectrum[i], filterbank[j], 
+					(FFTsize / 2) + 1); 
+		}
+	}
+	return energies;
 }
 
 double** logged_filterbank_energies(double **filterbank_nrgies,
-    long frameNbr_,
-    long filterbankNbr) {
+		long frameNbr_,
+		long filterbankNbr) {
 
-  for (long i = 0; i < frameNbr_; i++) {
-    for (long j = 0; j < filterbankNbr; j++) {
-      filterbank_nrgies[i][j] = log(filterbank_nrgies[i][j]);
-    }
-  }
-  return filterbank_nrgies;
+	for (long i = 0; i < frameNbr_; i++) {
+		for (long j = 0; j < filterbankNbr; j++) {
+			filterbank_nrgies[i][j] = log(filterbank_nrgies[i][j]);
+		}
+	}
+	return filterbank_nrgies;
 }
 
 double** DCT_II(double **logged_filterbank_energies,
-    long frameNbr_,
-    long filterbankNbr) {
+		long frameNbr_,
+		long filterbankNbr) {
 
-  double **DCT = malloc(sizeof(double*) * frameNbr_);
-  for (long i = 0; i < frameNbr_; i++) {
-    DCT[i] = malloc(sizeof(double) * filterbankNbr);
-    for (long j = 0; j < filterbankNbr; j++) {
-      long k = 0;
-      double sum = 0;
-      while (k < filterbankNbr) {
-	sum += logged_filterbank_energies[i][k]
-	  * cos((PI / filterbankNbr) * (k + (1/2)) * j);
-      }
-      DCT[i][j] = sum;
-    }
-  }
-  return DCT;
+	double **DCT = malloc(sizeof(double*) * frameNbr_);
+	for (long i = 0; i < frameNbr_; i++) {
+		DCT[i] = malloc(sizeof(double) * filterbankNbr);
+		for (long j = 0; j < filterbankNbr; j++) {
+			long k = 0;
+			double sum = 0;
+			while (k < filterbankNbr) {
+				sum += logged_filterbank_energies[i][k]
+					* cos((PI / filterbankNbr) * (k + (1/2)) * j);
+			}
+			DCT[i][j] = sum;
+		}
+	}
+	return DCT;
 }
 
-int main(int argc, char* argv[]) {
-  (void)argc;
-  double *signal = signalArray(argv[1]);
-  double *signal_pre_emphasis = pre_emphasis(signal);
-  double **framed_signal = hannWindow(signal_pre_emphasis);
-  cplx **DFTed_frames = DFT(framed_signal);
-  double **power_spectrum = PEPS(DFTed_frames);
-  double **filterBank = filterbank(sampleRate, FFTsize);
-  double **energies = filterbank_energies(filterBank, filterbankNbr,
-      power_spectrum, FFTsize, frameNbr_);
-  double **logged_energies = logged_filterbank_energies(energies, frameNbr_,
-      filterbankNbr);
-  double **DCT_of_energies = DCT_II(logged_energies, frameNbr_,
-      filterbankNbr);
+/*int main(int argc, char* argv[]) {
+	(void)argc;
+	double *signal = signalArray(argv[1]);*/
 
-  double **feat_vect = malloc(sizeof(double*) * frameNbr_);
-  for (long i = 0; i < frameNbr_; i++) {
-    feat_vect = malloc(sizeof(double) * 13);
-    for (long j = 0; j < 13; j++) {
-      feat_vect[i][j] = DCT_of_energies[i][j];
-    }
-  }
-//  return feat_vect;
-  return 0;
+double **MFCC(char *file) {
+	double *signal = signalArray(file);
+	double *signal_pre_emphasis = pre_emphasis(signal);
+	double **framed_signal = hannWindow(signal_pre_emphasis);
+	cplx **DFTed_frames = DFT(framed_signal);
+	double **power_spectrum = PEPS(DFTed_frames);
+	double **filterBank = filterbank(sampleRate, FFTsize);
+	double **energies = filterbank_energies(filterBank, filterbankNbr,
+			power_spectrum, FFTsize, frameNbr_);
+	double **logged_energies = logged_filterbank_energies(energies, frameNbr_,
+			filterbankNbr);
+	double **DCT_of_energies = DCT_II(logged_energies, frameNbr_,
+			filterbankNbr);
+
+	double **feat_vect = malloc(sizeof(double*) * frameNbr_);
+	for (long i = 0; i < frameNbr_; i++) {
+		feat_vect = malloc(sizeof(double) * 13);
+		for (long j = 0; j < 13; j++) {
+			feat_vect[i][j] = DCT_of_energies[i][j];
+		}
+	}
+	return feat_vect;
+	//  return 0;
 }
