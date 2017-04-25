@@ -10,7 +10,7 @@ long FFTsize = 512;
 
 long frameNbr_;
 
-long filterbankNbr;
+long filterbankNbr = 26;
 
 // Renvoie le tableau du signal
 double* signalArray(char *file) {
@@ -25,6 +25,7 @@ double* signalArray(char *file) {
   strcat(fileP, file);
 
   FILE *ptr = fopen(fileP, "rb");
+  //free(fileP);
   if (ptr == NULL) {
     printf("Error opening file\n");
     exit(1);
@@ -41,20 +42,20 @@ double* signalArray(char *file) {
   // Overall size (4 bytes)
   fread(buffer4, sizeof(buffer4), 1, ptr);
   // convert little endian to big endian 4 byte int
-  header.overall_size  = buffer4[0] | (buffer4[1]<<8) 
+  header.overall_size  = buffer4[0] | (buffer4[1]<<8)
     | (buffer4[2]<<16)
     | (buffer4[3]<<24);
   // Wave (4 bytes)
   fread(header.wave, sizeof(header.wave), 1, ptr);
 
   // FMT chunk marker (4 bytes)
-  fread(header.fmt_chunk_marker, 
+  fread(header.fmt_chunk_marker,
       sizeof(header.fmt_chunk_marker), 1, ptr);
 
   // Length of fmt (4 bytes)
   fread(buffer4, sizeof(buffer4), 1, ptr);
   header.length_of_fmt = buffer4[0] | (buffer4[1] << 8)
-    | (buffer4[2] << 16) 
+    | (buffer4[2] << 16)
     | (buffer4[3] << 24);
 
   // Format type (2 bytes)
@@ -74,16 +75,16 @@ double* signalArray(char *file) {
 
   // Sample rate (4 bytes)
   fread(buffer4, sizeof(buffer4), 1, ptr);
-  header.sample_rate = buffer4[0] | (buffer4[1] << 8) 
-    | (buffer4[2] << 16) 
+  header.sample_rate = buffer4[0] | (buffer4[1] << 8)
+    | (buffer4[2] << 16)
     | (buffer4[3] << 24);
 
   sampleRate = header.sample_rate;
 
   // Byterate (4 bytes)
   fread(buffer4, sizeof(buffer4), 1, ptr);
-  header.byterate  = buffer4[0] | (buffer4[1] << 8) 
-    | (buffer4[2] << 16) 
+  header.byterate  = buffer4[0] | (buffer4[1] << 8)
+    | (buffer4[2] << 16)
     | (buffer4[3] << 24);
 
   // Block align (2 bytes)
@@ -100,13 +101,13 @@ double* signalArray(char *file) {
 
   // Data size (4 bytes)
   fread(buffer4, sizeof(buffer4), 1, ptr);
-  header.data_size = buffer4[0] | (buffer4[1] << 8) 
-    | (buffer4[2] << 16) 
+  header.data_size = buffer4[0] | (buffer4[1] << 8)
+    | (buffer4[2] << 16)
     | (buffer4[3] << 24 );
 
 
-  // Number of samples                                                   
-  num_samples = (8 * header.data_size) 
+  // Number of samples
+  num_samples = (8 * header.data_size)
     / (header.channels * header.bits_per_sample);
 
   // Size of each sample
@@ -149,6 +150,7 @@ double* signalArray(char *file) {
       }
     }
   }
+  //free(fileP);
   return tab;
 }
 
@@ -174,15 +176,16 @@ long frameSampleNbr() {
 //Applique hanning sur les frames
 double** hannWindow(double* PA_signal) {
   long frameSampleNbr_ = frameSampleNbr();
+  long frameNbr_ = frameNbr();
   long step = floor(frameSampleNbr_ / 2);
-  double **frames = malloc(sizeof(double*) * frameNbr());
+  double **frames = malloc(sizeof(double*) * frameNbr_);
   long i = 0; // scanning index for PA_signal
   long j = 0; // index for frames
-  long k = 0; // index for frames[j] 
+  long k = 0; // index for frames[j]
   while (i < num_samples) {
     frames[j] = malloc(sizeof(double) * frameSampleNbr_);
     for (k = 0; k < frameSampleNbr_; k++, i++) {
-      frames[j][k] = PA_signal[i] * 
+      frames[j][k] = PA_signal[i] *
 	(0.54 - 0.46 * cos((2 * PI * i) / (frameSampleNbr_ - 1)));
     }
     j++;
@@ -214,11 +217,9 @@ cplx** DFT(double** frames) {
 	*/
 
 	long k = 1;
-	while ((k * 2) < frameSampleNbr_ ) {
+	while (k < frameSampleNbr_ ) {
 		k *= 2;
 	}
-	k *= 2;
-
 	cplx **DFTframes = malloc(sizeof(cplx*) * frameNbr_);
 	for (long i = 0; i < frameNbr_; i++) {
 		DFTframes[i] = malloc(sizeof(cplx) * k);
@@ -229,13 +230,28 @@ cplx** DFT(double** frames) {
 			DFTframes[i][j] = 0;
 		}
 		fft(DFTframes[i], k, PI);
-		cplx DFT_[FFTsize];
-		for (long l = 0; l < FFTsize; l++) {
+		/*cplx DFT_[FFTsize];
+		for (long l = 0; l < (FFTsize / 2) + 1; l++) {
 			DFT_[l] = DFTframes[i][l];
 		}
-		DFTframes[i] = DFT_;
+		DFTframes[i] = DFT_;*/
 	}
-	return DFTframes;
+	//printf("%ld, %ld\n", k, (FFTsize / 2) + 1);
+	cplx **DFTframes_ = malloc(sizeof(cplx*) * frameNbr_);
+	for (long i = 0; i < frameNbr_; i++) {
+		DFTframes_[i] = malloc(sizeof(cplx) * (FFTsize / 2) + 1);
+		for (long j = 0; j < (FFTsize / 2); j++) {
+			//printf("hello");
+			//printf("%ld, %ld\n",i ,j);
+			//printf("%f + i%f\n", creal(DFTframes[i][j]), cimag(DFTframes[i][j]));
+			//printf("%ld\n", (FFTsize / 2) + 1);
+			DFTframes_[i][j] = DFTframes[i][j];
+			//printf("bye");
+		}
+
+	}
+  //free(DFTframes);
+	return DFTframes_;
 }
 
 //Periodogram estimate of the power spectrum
@@ -243,11 +259,11 @@ double** PEPS(cplx **DFTed_frames) {
 	long frameNbr_ = frameNbr();
 	double** power_spec = malloc(sizeof(double*) * frameNbr_);
 	for (long i = 0; i < frameNbr_; i++) {
-		power_spec[i] = malloc(sizeof(double) * FFTsize); 
-		for (long j = 0; j < FFTsize; j++) {
+		power_spec[i] = malloc(sizeof(double) * (FFTsize / 2) + 1);
+		for (long j = 0; j < (FFTsize / 2) + 1; j++) {
 			cplx Z = DFTed_frames[i][j];
-			power_spec[i][j] = (1 / FFTsize) * 
-				((creal (Z) * creal(Z)) + (cimag (Z) * cimag (Z)));
+			power_spec[i][j] = ((creal (Z) * creal(Z)) + (cimag (Z) * cimag
+			(Z))) / FFTsize;
 		}
 	}
 	return power_spec;
@@ -261,78 +277,83 @@ double MtoF (double m) {
 	return 700 * (exp(m / 1127) - 1);
 }
 
-double** filterbank (double sampleRate, double FFTsize) {
-	long filterbanksNbr = 26;
-	double lower_f = 20;
-	double upper_f = 7600;
+double** filterbank (double sampleRate) {
+	double lower_f = 0;
+	double upper_f = floor(sampleRate / 2);
 	double lower_mel = FtoM(lower_f);
 	double upper_mel = FtoM(upper_f);
-	double step = (upper_mel - lower_mel) / (filterbanksNbr + 1);
-
-	double *points = malloc(sizeof(double) * (filterbanksNbr + 2));
+	double step = (upper_mel - lower_mel) / (filterbankNbr + 1);
+	double step_ = step;
+	//printf("step: %f\n", step);
+	double *points = malloc(sizeof(double) * (filterbankNbr + 2));
 	points[0] = lower_mel;
-	points[filterbanksNbr + 1] = upper_mel;
-	for (long i = 1; i < (filterbanksNbr + 1); i++) {
+	//printf("point 0: %f\n", points[0]);
+	points[filterbankNbr + 1] = upper_mel;
+	for (long i = 1; i < (filterbankNbr + 1); i++) {
 		points[i] = lower_mel + step;
-		step *= 2;
+		step += step_;
+		//printf("point %ld: %f\n", i, points[i]);
 	} // *points is a pointer on mel number array
+	//printf("point 27: %f\n", points[filterbankNbr + 1]);
 
-	for (long i = 0; i < (filterbanksNbr + 1); i++) {
+	for (long i = 0; i < (filterbankNbr + 2); i++) {
 		points[i] = MtoF(points[i]);
+		//printf("point %ld: %f\n", i, points[i]);
 	} // *points is now a pointer on frequency array
 
-	for (long i = 0; i < (filterbanksNbr + 1); i++) {
+
+	for (long i = 0; i < (filterbankNbr + 2); i++) {
 		points[i] = floor((FFTsize + 1) * points[i] / sampleRate);
+		//printf("point %ld: %f\n", i, points[i]);
 	}
 
-	double **filterbanks = malloc(sizeof(double*) * filterbanksNbr);
-	for (long i = 0; i < filterbanksNbr; i++) {
+	double **filterbanks = malloc(sizeof(double*) * filterbankNbr);
+	for (long i = 0; i < filterbankNbr; i++) {
 		filterbanks[i] = malloc(sizeof(double) * ((FFTsize / 2) + 1));
 		for (long j = 0; j < ((FFTsize / 2) + 1); j++) {
 			if (j < points[i])
 				filterbanks[i][j] = 0;
 			if (points[i] <= j && j <= points[i + 1])
-				filterbanks[i][j] = 
+				filterbanks[i][j] =
 					(j - points[i]) / (points[i + 1] - points[i]);
 			if (points[i + 1] <= j && j <= points[i + 2])
-				filterbanks[i][j] = 
+				filterbanks[i][j] =
 					(points[i + 2] - j) / (points[i + 2] - points[i + 1]);
 			if (points[i + 2] < j)
 				filterbanks[i][j] = 0;
 		}
 	}
+  //free(points);
+	/*for (long j = 0; j < filterbankNbr; j++) {
+		printf("Filterbank %ld:\n", j);
+		for (long i = 0; i < ((FFTsize / 2) + 1); i++) {
+			printf("%f\n", filterbanks[j][i]);
+		}
+	}*/
 	return filterbanks;
 }
 
-double coeff(double *A, double *B, long size) {
+double coeff(double *A, double *B) {
 	double coeff = 0;
-	for (long i = 0; i < size; i++) {
+	for (long i = 0; i < (FFTsize / 2) + 1; i++) {
 		coeff += A[i] * B[i];
 	}
 	return coeff;
 }
 
-double** filterbank_energies(double **filterbank,
-		long filterbanksNbr,
-		double **power_spectrum,
-		double FFTsize,
-		long frameNbr_) {
-
+double** filterbank_energies(double **filterbank, double **power_spectrum) {
 	double **energies = malloc(sizeof(double*) * frameNbr_);
 	for (long i = 0; i < frameNbr_; i++) {
-		energies[i] = malloc(sizeof(double) * filterbanksNbr);
-		for (long j = 0; j < filterbanksNbr; j++) {
-			energies[i][j] = coeff(power_spectrum[i], filterbank[j], 
-					(FFTsize / 2) + 1); 
+		energies[i] = malloc(sizeof(double) * filterbankNbr);
+		for (long j = 0; j < filterbankNbr; j++) {
+			energies[i][j] = coeff(power_spectrum[i], filterbank[j]);
 		}
+		//printf("%f\n", power_spectrum[i][100]);
 	}
 	return energies;
 }
 
-double** logged_filterbank_energies(double **filterbank_nrgies,
-		long frameNbr_,
-		long filterbankNbr) {
-
+double** logged_filterbank_energies(double **filterbank_nrgies) {
 	for (long i = 0; i < frameNbr_; i++) {
 		for (long j = 0; j < filterbankNbr; j++) {
 			filterbank_nrgies[i][j] = log(filterbank_nrgies[i][j]);
@@ -341,10 +362,7 @@ double** logged_filterbank_energies(double **filterbank_nrgies,
 	return filterbank_nrgies;
 }
 
-double** DCT_II(double **logged_filterbank_energies,
-		long frameNbr_,
-		long filterbankNbr) {
-
+double** DCT_II(double **logged_filterbank_energies) {
 	double **DCT = malloc(sizeof(double*) * frameNbr_);
 	for (long i = 0; i < frameNbr_; i++) {
 		DCT[i] = malloc(sizeof(double) * filterbankNbr);
@@ -354,6 +372,7 @@ double** DCT_II(double **logged_filterbank_energies,
 			while (k < filterbankNbr) {
 				sum += logged_filterbank_energies[i][k]
 					* cos((PI / filterbankNbr) * (k + (1/2)) * j);
+				k++;
 			}
 			DCT[i][j] = sum;
 		}
@@ -363,29 +382,61 @@ double** DCT_II(double **logged_filterbank_energies,
 
 /*int main(int argc, char* argv[]) {
 	(void)argc;
-	double *signal = signalArray(argv[1]);*/
-
+	double *signal = signalArray(argv[1]);
+*/
 double **MFCC(char *file) {
 	double *signal = signalArray(file);
+	frameNbr_ = frameNbr();
 	double *signal_pre_emphasis = pre_emphasis(signal);
+	free(signal);
 	double **framed_signal = hannWindow(signal_pre_emphasis);
+	free(signal_pre_emphasis);
 	cplx **DFTed_frames = DFT(framed_signal);
+	/*for (long i = 0; i < frameNbr_; i++) {
+	  free(framed_signal[i]);
+	  }
+	  free(framed_signal);*/
 	double **power_spectrum = PEPS(DFTed_frames);
-	double **filterBank = filterbank(sampleRate, FFTsize);
-	double **energies = filterbank_energies(filterBank, filterbankNbr,
-			power_spectrum, FFTsize, frameNbr_);
-	double **logged_energies = logged_filterbank_energies(energies, frameNbr_,
-			filterbankNbr);
-	double **DCT_of_energies = DCT_II(logged_energies, frameNbr_,
-			filterbankNbr);
+	for (long i = 0; i < frameNbr_; i++) {
+		free(DFTed_frames[i]);
+	}
+	free(DFTed_frames);
+	double **filterBank = filterbank(sampleRate);
+	double **energies = filterbank_energies(filterBank, power_spectrum);
+	for (long i = 0; i < filterbankNbr; i++) {
+		free(filterBank[i]);
+	}
+	free(filterBank);
+	for (long i = 0; i < frameNbr_; i++) {
+		free(power_spectrum[i]);
+	}
+	free(power_spectrum);
+	double **logged_energies = logged_filterbank_energies(energies);
+	double **DCT_of_energies = DCT_II(logged_energies);
+	for (long i = 0; i < frameNbr_; i++) {
+		free(logged_energies[i]);
+	}
+	free(logged_energies);
 
 	double **feat_vect = malloc(sizeof(double*) * frameNbr_);
+
 	for (long i = 0; i < frameNbr_; i++) {
-		feat_vect = malloc(sizeof(double) * 13);
+		feat_vect[i] = malloc(sizeof(double) * 13);
 		for (long j = 0; j < 13; j++) {
 			feat_vect[i][j] = DCT_of_energies[i][j];
 		}
+		free(DCT_of_energies[i]);
 	}
+	free(DCT_of_energies);
+
+	/*for (long a = 0; a < frameNbr_; a++) {
+		printf(" %ld : ", a);
+		for (long b  = 0; b < 13; b++) {
+			printf("%f  ", feat_vect[a][b]);
+		}
+		printf("\n");
+	}*/
+
 	return feat_vect;
-	//  return 0;
+	//return 0;
 }
