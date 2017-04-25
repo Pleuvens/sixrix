@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 	if (buffer == NULL) {
 		fprintf(stderr, "Could not allocate buffer for output\n");
 	}
-
+	
 	// Create sample, a single tone
 	long f;
 	for (f=0 ; f<numFrames ; f++) {
