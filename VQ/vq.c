@@ -65,7 +65,7 @@ void generate(double ***vects, double **codeword, long *len_o)
 	int nb_class = 43;
 	double **codeword2 = NULL;
 	int *vertex_by_class = calloc(nb_class,sizeof(int));
-	while(thresh(codeword,codeword2,nb_class,len) > 1)
+	while(thresh(codeword,codeword2,nb_class,len) > 0.1)
 	{
 		for(int i = 0; i < M; i++)
 		{
@@ -456,7 +456,7 @@ int main()
 	193280__margo-heston__nn.wav
 	*/
 	extern long frameNbr_;
-	double **oo = MFCC("../phonemes/193319__margo-heston__oo.wav");
+	double **oo = MFCC("../audio_file/OPEN_MAL.WAV");
 	long l = frameNbr_;
 	char **r = mainProcess(oo,l);
 	for(int i = 0; i < l; ++i)
