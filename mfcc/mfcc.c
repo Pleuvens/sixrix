@@ -388,36 +388,36 @@ double **MFCC(char *file) {
 	double *signal = signalArray(file);
 	frameNbr_ = frameNbr();
 	double *signal_pre_emphasis = pre_emphasis(signal);
-	free(signal);
+	//free(signal);
 	double **framed_signal = hannWindow(signal_pre_emphasis);
-	free(signal_pre_emphasis);
+	//free(signal_pre_emphasis);
 	cplx **DFTed_frames = DFT(framed_signal);
 	/*for (long i = 0; i < frameNbr_; i++) {
 	  free(framed_signal[i]);
 	  }
 	  free(framed_signal);*/
 	double **power_spectrum = PEPS(DFTed_frames);
-	for (long i = 0; i < frameNbr_; i++) {
+	/*for (long i = 0; i < frameNbr_; i++) {
 		free(DFTed_frames[i]);
 	}
-	free(DFTed_frames);
+	free(DFTed_frames);*/
 	double **filterBank = filterbank(sampleRate);
 	double **energies = filterbank_energies(filterBank, power_spectrum);
-	for (long i = 0; i < filterbankNbr; i++) {
+/*	for (long i = 0; i < filterbankNbr; i++) {
 		free(filterBank[i]);
 	}
 	free(filterBank);
 	for (long i = 0; i < frameNbr_; i++) {
 		free(power_spectrum[i]);
 	}
-	free(power_spectrum);
+	free(power_spectrum);*/
 	double **logged_energies = logged_filterbank_energies(energies);
 	double **DCT_of_energies = DCT_II(logged_energies);
-	for (long i = 0; i < frameNbr_; i++) {
+/*	for (long i = 0; i < frameNbr_; i++) {
 		free(logged_energies[i]);
 	}
 	free(logged_energies);
-
+*/
 	double **feat_vect = malloc(sizeof(double*) * frameNbr_);
 
 	for (long i = 0; i < frameNbr_; i++) {
@@ -427,7 +427,7 @@ double **MFCC(char *file) {
 		}
 		free(DCT_of_energies[i]);
 	}
-	free(DCT_of_energies);
+//	free(DCT_of_energies);
 
 	/*for (long a = 0; a < frameNbr_; a++) {
 		printf(" %ld : ", a);
