@@ -216,7 +216,6 @@ int main(int argc, char const *argv[])
      numBytes = numSamples * sizeof(SAMPLE);
      data.recordedSamples = (SAMPLE *) malloc( numBytes ); /* From now on, recordedSamples is initialised. */
 
-     double *buffer1 = (double *) malloc(numSamples * sizeof(double));
 
      if( data.recordedSamples == NULL )
      {
@@ -224,7 +223,6 @@ int main(int argc, char const *argv[])
          goto done;
      }
      for( i=0; i<numSamples; i++ ) data.recordedSamples[i] = 0;
-     for( i=0; i<numSamples; i++ ) buffer1[i] = 0;
 
      err = Pa_Initialize();
      if( err != paNoError ) goto done;
@@ -306,19 +304,6 @@ int main(int argc, char const *argv[])
 
       long numFrames=totalFrames;
 
-      double *buffer = (double *) malloc(numSamples * sizeof(double));
-     	if (buffer == NULL) {
-     		fprintf(stderr, "Could not allocate buffer for output\n");
-
-     	}
-
-      // Create sample, a single tone
-    	long f;
-    	for (f=0 ; f<numSamples ; f++) {
-    		buffer[f] = (double)data.recordedSamples[f];
-    	}
-
-
      SF_INFO info;
      info.format = SF_FORMAT_WAV | SF_FORMAT_PCM_32;
      info.channels = 2;
@@ -328,7 +313,6 @@ int main(int argc, char const *argv[])
      SNDFILE *sndFile = sf_open(argv[1], SFM_WRITE, &info);
      if (sndFile == NULL) {
        fprintf(stderr, "Error opening sound file '%s': %s\n", argv[1], sf_strerror(sndFile));
-       free(buffer);
        return -1;
      }
 
@@ -339,14 +323,12 @@ int main(int argc, char const *argv[])
      if (writtenFrames != numFrames) {
        fprintf(stderr, "Did not write enough frames for source\n");
        sf_close(sndFile);
-       free(buffer);
        return -1;
      }
 
      // Tidy up
      sf_write_sync(sndFile);
      sf_close(sndFile);
-     free(buffer);
 
  #endif
 
