@@ -456,7 +456,7 @@ int main()
 	193280__margo-heston__nn.wav
 	*/
 	extern long frameNbr_;
-	double **oo = MFCC("../audio_file/OPEN_MAL.WAV");
+	double **oo = MFCC("../phonemes/193319__margo-heston__oo.wav");
 	long l = frameNbr_;
 	char **r = mainProcess(oo,l);
 	for(int i = 0; i < l; ++i)
