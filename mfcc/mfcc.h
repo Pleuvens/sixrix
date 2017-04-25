@@ -60,19 +60,13 @@ double FtoM (double f);
 
 double MtoF (double m);
 
-double** filterbank (double sampleRate, double FFTsize);
+double** filterbank (double sampleRate);
 
-double coeff(double *A, double *B, long size);
+double coeff(double *A, double *B);
 
-double** filterbank_energies(double **filterbank,
-                             long filterbanksNbr,
-                             double **power_spectrum,
-                             double FFTsize,
-                             long frameNbr_);
+double** filterbank_energies(double **filterbank, double **power_spectrum);
 
-double** logged_filterbank_energies(double **filterbank_energies,
-                                    long frameNbr_,
-                                    long filterbankNbr);
+double** logged_filterbank_energies(double **filterbank_energies);
 
 double** MFCC(char *file);
 #endif
