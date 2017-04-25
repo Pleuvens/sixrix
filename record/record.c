@@ -97,7 +97,7 @@ int recordFLAC(AudioData data, const char *fileName)
     printf("numSamples=%d\tnumBytes=%d\n",numSamples,numBytes);
 
     data.recordedSamples = calloc(numSamples, numBytes); // From now on, recordedSamples is initialised.
-    if(data.recordedSamples)
+    if(!data.recordedSamples)
     {
         fprintf(stderr, "Could not allocate record array.\n");
         goto done;
@@ -156,7 +156,7 @@ done:
 
 int main() {
 
-  AudioData data = initAudioData(44100,2,1);
+  AudioData data = initAudioData(440,2,1);
   recordFLAC(data,"test.wav");
 
   return 0;
