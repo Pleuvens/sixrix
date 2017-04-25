@@ -8,7 +8,7 @@
 #include "portaudio.h"
 #include <sndfile.h>
 #include "audio.h"
-
+#include <err.h>
 /**
  * @fn initAudioData
  * @param sampleRate The sample rate in Hertz in which the audio is to be recorded
@@ -102,7 +102,10 @@ int recordFLAC(AudioData data, const char *fileName)
         fprintf(stderr, "Could not allocate record array.\n");
         goto done;
     }
-    if((err = Pa_Initialize())) goto done;
+    if((err = Pa_Initialize())){
+      errx(3,"Error while Pa_Initialize");
+      goto done;
+    }
 
     inputParameters.device = Pa_GetDefaultInputDevice();
     if (inputParameters.device == paNoDevice)
