@@ -6,12 +6,12 @@
 
 # include "../mfcc/mfcc.c"
 
-long long dist(double *x, double y, int len)
+long long dist(double *x, double *y, int len)
 {
 	long long res = 0;
 	for(int i = 0; i < len; i++)
 	{
-		res += x[i] - y * x[i] - y;
+		res += x[i] - y[i] * x[i] - y[i];
 	}
 	if(res < 0)
 	{
@@ -21,7 +21,7 @@ long long dist(double *x, double y, int len)
 	return res;
 }
 
-double thresh(double *c1, double *c2, int len)
+double thresh(double **c1, double **c2, int len, int len2)
 {
 	if(!c2)
 	{
@@ -30,35 +30,42 @@ double thresh(double *c1, double *c2, int len)
 	double res = 0;
 	for(int i = 0; i < len; i++)
 	{
-		double tmp = c1[i] - c2[i];
-		/*
-		if(tmp < 0)
+		for(int j = 0; j < len2; ++j)
 		{
-			tmp *= -1;
+			double tmp = c1[i][j] - c2[i][j];
+			/*
+			if(tmp < 0)
+			{
+				tmp *= -1;
+			}
+			*/
+			res += tmp;
 		}
-		*/
-		res += tmp;
 	}
 	return res;
 }
 
-void change(double *c1, double *c2, int l1)
+void change(double **c1, double **c2, int l1, int l2)
 {
 	for(int i = 0; i < l1; ++i)
 	{
-		c1[i] = c2[i];		
+		for(int j = 0; j < l2; ++j)
+		{
+			c1[i][j] = c2[i][j];		
+		}
+		free(c2[i]);
 	}
 	free(c2);
 }
 
-void generate(double ***vects, double *codeword, long *len_o)
+void generate(double ***vects, double **codeword, long *len_o)
 {
 	int len = 13;
 	int M = 4;
 	int nb_class = 43;
-	double *codeword2 = NULL;
+	double **codeword2 = NULL;
 	int *vertex_by_class = calloc(nb_class,sizeof(int));
-	while(thresh(codeword,codeword2,nb_class) >1)
+	while(thresh(codeword,codeword2,nb_class,len) > 1)
 	{
 		for(int i = 0; i < M; i++)
 		{
@@ -96,7 +103,7 @@ void generate(double ***vects, double *codeword, long *len_o)
 		}*/
 		for(int j = 0; j < nb_class; ++j)
 		{
-			//codeword2[j] = calloc(len,sizeof(double));
+			codeword2[j] = calloc(len,sizeof(double));
 			double num = 0;
 			double denom = 0;
 			for(int i = 0; i < M; ++i)
@@ -109,14 +116,14 @@ void generate(double ***vects, double *codeword, long *len_o)
 					}
 					denom += vertex_by_class[i];
 				}
+				codeword[j][i] = num/denom;
 			}
-			codeword[j] = num/denom;
 		}
-		change(codeword,codeword2,nb_class);
+		change(codeword,codeword2,nb_class,len);
 	}
 }
 
-int searchvk(double *o,double *codeword, int nb_class)
+int searchvk(double *o,double **codeword, int nb_class)
 {
 	int index = 0;
 	int len = 13;
@@ -133,7 +140,7 @@ int searchvk(double *o,double *codeword, int nb_class)
 	return index;
 }
 
-void saveVal(double *codeword,int l1)
+void saveVal(double **codeword,int l1, int l2)
 {
 	char *path = "./vqsave";
 	FILE *f = fopen(path,"w");
@@ -142,12 +149,15 @@ void saveVal(double *codeword,int l1)
 
 	for(int i = 0; i < l1; i++)
 	{
-		fprintf(f,"%f ", codeword[i]);
+		for(int j = 0; j < l2; ++j)
+		{
+			fprintf(f,"%f ", codeword[i][j]);
+		}
 	}
 	fclose(f);
 }
 
-double* loadVal(double *codeword, int *l1)
+double** loadVal(double **codeword, int *l1, int l2)
 {
 	char *path = "./vqsave";
 	FILE *f = fopen(path,"r");
@@ -156,7 +166,11 @@ double* loadVal(double *codeword, int *l1)
 	codeword = calloc(*l1,sizeof(double*));
 	for(int i = 0; i < *l1; i++)
 	{
-		fscanf(f,"%lf",codeword+i);
+		codeword[i] = calloc(l2,sizeof(double));
+		for(int j = 0; j < l2; ++j)
+		{
+			fscanf(f,"%lf",codeword[i]+j);
+		}
 	}
 	fclose(f);
 	return codeword;
@@ -303,11 +317,15 @@ char* state_match(int index)
 	return ph;
 }
 
-void randomCW(double *cw, int nb_class)
+void randomCW(double **cw, int nb_class, int len)
 {
 	for(int i = 0; i < nb_class; i++)
 	{
-		cw[i] = (double)(rand() % 490 + (-40));
+		cw[i] = calloc(len,sizeof(double));
+		for(int j = 0; j < len; ++j)
+		{
+			cw[i][j] = (double)(rand() % 490 + (-40));
+		}
 	}
 }
 
@@ -317,15 +335,15 @@ char **mainProcess(double **o, long len)
 	int nb_class = 43;
 	extern long frameNbr_;
 	long *len_o = calloc(nb_class,sizeof(long));
-	double *codeword = NULL;	
+	double **codeword = NULL;	
 	FILE *f = NULL;
 	if((f = fopen("./vqsave","r")))
 	{
 		fclose(f);
-		codeword = loadVal(codeword,&nb_class);
+		codeword = loadVal(codeword,&nb_class,13);
 	} else {
 		codeword = calloc(nb_class,sizeof(double*));	
-		randomCW(codeword,nb_class);	
+		randomCW(codeword,nb_class,13);	
 		double ***vects = calloc(nb_class,sizeof(double**));	
 		vects[0] = MFCC("../phonemes/193262__margo-heston__ay.wav");
 		len_o[0] = frameNbr_;
@@ -414,7 +432,7 @@ char **mainProcess(double **o, long len)
 		vects[42] = MFCC("../phonemes/193326__margo-heston__wuh.wav");
 		len_o[42] = frameNbr_;
 		generate(vects,codeword,len_o);
-		saveVal(codeword,nb_class);
+		saveVal(codeword,nb_class,13);
 	}
 	char **res = calloc(len,sizeof(char*));
 	for(long i = 0; i < len; i++)
