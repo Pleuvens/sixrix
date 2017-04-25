@@ -374,12 +374,12 @@ double** DCT_II(double **logged_filterbank_energies) {
 	return DCT;
 }
 
-/*int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 	(void)argc;
 	double *signal = signalArray(argv[1]);
-	*/
-double **MFCC(char *file) {
-	double *signal = signalArray(file);
+	
+/*double **MFCC(char *file) {
+	double *signal = signalArray(file);*/
 	frameNbr_ = frameNbr();
 	double *signal_pre_emphasis = pre_emphasis(signal);
 	double **framed_signal = hannWindow(signal_pre_emphasis);
@@ -399,14 +399,14 @@ double **MFCC(char *file) {
 		}
 	}
 
-	/*for (long a = 0; a < frameNbr_; a++) {
+	for (long a = 0; a < frameNbr_; a++) {
 		printf(" %ld : ", a);
 		for (long b  = 0; b < 13; b++) {
 			printf("%f  ", feat_vect[a][b]);
 		}
 		printf("\n");
-	}*/
+	}
 
-	return feat_vect;
-	//return 0;
+	//return feat_vect;
+	return 0;
 }
