@@ -1,5 +1,4 @@
-1 
-9 /*
+/*
  * $Id$
  *
  * This program uses the PortAudio Portable Audio Library.
