@@ -6,15 +6,15 @@ CFLAGS= -Wall -Werror -Wextra -std=c99 -pedantic -g
 LDFLAGS=
 LDLIBS= `pkg-config --libs gtk+-3.0 sdl` -lSDL_image -lm -rdynamic
 
-SRC1= ../VQ/vq.c mfcc.c
+SRC1= ../VQ/vq.c test.c
 OBJ1= ${SRC1:.c=.o}
 
-all: mfcc
+all: test
 
 main: ${OBJ1}
 
 clean:
 	rm -f *~ *.o
-	rm -f *~ *.d mfcc
+	rm -f *~ *.d test
 
 # END
