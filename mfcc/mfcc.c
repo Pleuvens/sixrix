@@ -16,6 +16,7 @@ long filterbankNbr = 26;
 double* signalArray(char *file) {
 	// File Path
 
+	/*
 	char *fileP = calloc(1024, sizeof(char));//(char*) malloc(sizeof(char) * 1024);
 	char cwd[1024];
 	if(getcwd(cwd, sizeof(cwd)) == NULL)
@@ -23,8 +24,8 @@ double* signalArray(char *file) {
 	strcpy(fileP, cwd);
 	strcat(fileP, "/");
 	strcat(fileP, file);
-
-	FILE *ptr = fopen(fileP, "rb");
+	*/
+	FILE *ptr = fopen(file, "rb");
 	//free(fileP);
 	if (ptr == NULL) {
 		printf("Error opening file\n");

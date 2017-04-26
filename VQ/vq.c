@@ -338,7 +338,8 @@ void mainProcess(char *path)
 {
 	extern long frameNbr_;
 	printf("%s\n",path);
-	long long **oo = (long long**)MFCC("../audio_file/OPEN_MAL.WAV");
+	//"../audio_file/OPEN_MAL.WAV"
+	long long **oo = (long long**)MFCC(path);
 	long l = frameNbr_;
 	//Load file
 	int nb_class = 43;
