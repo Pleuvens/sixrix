@@ -4,7 +4,7 @@ CC=gcc
 CPPFLAGS= -rdynamic -MMD `pkg-config --cflags gtk+-3.0 sdl`
 CFLAGS= -Wall -Werror -Wextra -std=c99 -pedantic -g3
 LDFLAGS=
-LDLIBS= `pkg-config --libs gtk+-3.0 sdl` -lSDL_ttf -rdynamic
+LDLIBS= -lm `pkg-config --libs gtk+-3.0 sdl` -lSDL_ttf -rdynamic
 
 SRC1= main.c
 OBJ1= ${SRC1:.c=.o}
