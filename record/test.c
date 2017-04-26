@@ -234,6 +234,10 @@ int main(int argc, char const *argv[])
          errx(3,"No device found");
          goto done;
      }
+     else{
+     printf("Default device = %d\n",inputParameters.device );
+     }
+     
      inputParameters.channelCount = 2;                    /* stereo input */
      inputParameters.sampleFormat = PA_SAMPLE_TYPE;
      inputParameters.suggestedLatency = Pa_GetDeviceInfo( inputParameters.device )->defaultLowInputLatency;
