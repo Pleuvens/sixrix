@@ -307,10 +307,10 @@ double** filterbank (double sampleRate) {
 		//printf("point %ld: %f\n", i, points[i]);
 	}
 
-	double **filterbanks = malloc(sizeof(double*) * filterbankNbr);
+	double **filterbanks = malloc(sizeof(double*) * filterbankNbr + 2);
 	for (long i = 0; i < filterbankNbr; i++) {
 		filterbanks[i] = malloc(sizeof(double) * ((FFTsize / 2) + 1));
-		for (long j = 0; j < ((FFTsize / 2)); j++) {
+		for (long j = 0; j < ((FFTsize / 2) + 1); j++) {
 			if (j < points[i])
 				filterbanks[i][j] = 0;
 			if (points[i] <= j && j <= points[i + 1])
