@@ -429,13 +429,13 @@ double **MFCC(char *file) {
 	}
 //	free(DCT_of_energies);
 
-	for (long a = 0; a < frameNbr_; a++) {
+	/*for (long a = 0; a < frameNbr_; a++) {
 		printf(" %ld : ", a);
 		for (long b  = 0; b < 13; b++) {
 			printf("%f  ", feat_vect[a][b]);
 		}
 		printf("\n");
-	}
+	}*/
 
 	return feat_vect;
 	//return 0;
