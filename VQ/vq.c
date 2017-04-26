@@ -338,7 +338,8 @@ void mainProcess(char *path)
 {
 	extern long frameNbr_;
 	printf("%s\n",path);
-	long long **oo = (long long**)MFCC("../audio_file/OPEN_MAL.WAV");
+	//"../audio_file/OPEN_MAL.WAV"
+	long long **oo = (long long**)MFCC(path);
 	long l = frameNbr_;
 	//Load file
 	int nb_class = 43;
@@ -347,16 +348,13 @@ void mainProcess(char *path)
 	FILE *f = NULL;
 	if((f = fopen("../VQ/vqsave","r")))
 	{
-		printf("1\n");
 		fclose(f);
 		codeword = loadVal(codeword,&nb_class,13);
 	} else {
-		printf("1\n");
 		codeword = calloc(nb_class,sizeof(long long*));	
 		randomCW(codeword,nb_class,13);	
 		long long ***vects = calloc(nb_class,sizeof(long long**));	
 		vects[0] = (long long**)MFCC("../phonemes/193262__margo-heston__ay.wav");
-		printf("2\n");
 		len_o[0] = frameNbr_;
 		vects[1] = (long long**)MFCC("../phonemes/193263__margo-heston__aww.wav");
 		len_o[1] = frameNbr_;

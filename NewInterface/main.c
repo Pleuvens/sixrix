@@ -7,7 +7,6 @@
 char *k;
 GtkBuilder *builder;
 GtkWidget *choose;
-const gchar* chemin;
 
 int showmenu(SDL_Surface* screen, TTF_Font* font){
   Uint32 time;
@@ -127,7 +126,8 @@ SDL_Surface *load_image(const char *c, Uint32 colorkey)
 
 void on_button1_clicked(){
   GtkWidget *dialog;
-  chemin = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(gtk_builder_get_object(builder, "filechooserdialog1")));
+  
+  const gchar *chemin = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(gtk_builder_get_object(builder, "filechooserdialog1")));
 
   dialog = gtk_message_dialog_new(GTK_WINDOW(choose),
       GTK_DIALOG_MODAL,
@@ -175,7 +175,7 @@ int main(int argc, char *argv[]){
     }
     if(i == 2){
       //run prog
-      mainProcess((char*)(chemin));
+      mainProcess(k);
     }
     i = showmenu(screen, font);
   }
