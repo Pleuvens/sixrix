@@ -237,7 +237,7 @@ int main(int argc, char const *argv[])
      else{
      printf("Default device = %d\n",inputParameters.device );
      }
-     
+
      inputParameters.channelCount = 2;                    /* stereo input */
      inputParameters.sampleFormat = PA_SAMPLE_TYPE;
      inputParameters.suggestedLatency = Pa_GetDeviceInfo( inputParameters.device )->defaultLowInputLatency;
@@ -259,10 +259,13 @@ int main(int argc, char const *argv[])
      if( err != paNoError ) goto done;
      printf("\n=== Now recording!! Please speak into the microphone. ===\n"); fflush(stdout);
 
+     float r=1;
      while( ( err = Pa_IsStreamActive( stream ) ) == 1 )
      {
          Pa_Sleep(1000);
-         printf("index = %d\n", data.frameIndex ); fflush(stdout);
+          r=((float)data.frameIndex/(float)data.maxFrameIndex)*100;
+          printf("Listening! %d%%\n",(int)r );
+          //printf("index = %d\t %d\t%%\n", data.frameIndex,(int)r ); fflush(stdout);
      }
      if( err < 0 ) goto done;
 
@@ -290,7 +293,7 @@ int main(int argc, char const *argv[])
 
      /* Write recorded data to a file. */
  #if WRITE_TO_FILE
-     {
+     /*{
          FILE  *fid;
          fid = fopen("recorded.raw", "wb");
          if( fid == NULL )
@@ -303,7 +306,7 @@ int main(int argc, char const *argv[])
              fclose( fid );
              printf("Wrote data to 'recorded.raw'\n");
          }
-     }
+     }*/
 /***************************WAV CUSTOM******************************************/
      // Set file settings, 16bit Mono PCM
       // Allocate storage for frames
@@ -316,6 +319,9 @@ int main(int argc, char const *argv[])
      info.samplerate = SAMPLE_RATE;
 
      // Open sound file for writing
+     if (argv[1]==NULL) {
+       errx(3,"Error no name for the output file\n");
+     }
      SNDFILE *sndFile = sf_open(argv[1], SFM_WRITE, &info);
      if (sndFile == NULL) {
        fprintf(stderr, "Error opening sound file '%s': %s\n", argv[1], sf_strerror(sndFile));
