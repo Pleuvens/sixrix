@@ -2,9 +2,12 @@
 # include <SDL/SDL_ttf.h>
 # include <gtk/gtk.h>
 
+# include "../VQ/vq.c"
+
 char *k;
 GtkBuilder *builder;
 GtkWidget *choose;
+const gchar* chemin;
 
 int showmenu(SDL_Surface* screen, TTF_Font* font){
   Uint32 time;
@@ -123,7 +126,6 @@ SDL_Surface *load_image(const char *c, Uint32 colorkey)
 
 
 void on_button1_clicked(){
-  const gchar* chemin;
   GtkWidget *dialog;
   chemin = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(gtk_builder_get_object(builder, "filechooserdialog1")));
 
@@ -173,6 +175,7 @@ int main(int argc, char *argv[]){
     }
     if(i == 2){
       //run prog
+      mainProcess((char*)(chemin));
     }
     i = showmenu(screen, font);
   }
