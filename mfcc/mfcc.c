@@ -335,7 +335,7 @@ double** filterbank (double sampleRate) {
 
 double coeff(double *A, double *B) {
 	double coeff = 0;
-	for (long i = 0; i < (FFTsize / 2) + 1; i++) {
+	for (long i = 0; i < (FFTsize / 2); i++) {
 		coeff += A[i] * B[i];
 	}
 	return coeff;
