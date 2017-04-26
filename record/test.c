@@ -44,6 +44,7 @@
 #include <math.h>
 #include <malloc.h>
 #include <sndfile.h>
+#include <err.h>
 
 /* #define SAMPLE_RATE  (17932) // Test failure to open with this value. */
 #define SAMPLE_RATE  (44100)
@@ -230,6 +231,7 @@ int main(int argc, char const *argv[])
      inputParameters.device = Pa_GetDefaultInputDevice(); /* default input device */
      if (inputParameters.device == paNoDevice) {
          fprintf(stderr,"Error: No default input device.\n");
+         errx(3,"No device found");
          goto done;
      }
      inputParameters.channelCount = 2;                    /* stereo input */

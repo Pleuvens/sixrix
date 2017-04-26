@@ -18,4 +18,7 @@ hanning: ${OBJ}
 clean:
 	rm -f ${OBJ} ${DEP} test
 
+remove:
+		rm -f ${OBJ} ${DEP} test *.raw *.wav
+
 # END
