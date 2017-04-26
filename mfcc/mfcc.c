@@ -14,207 +14,207 @@ long filterbankNbr = 26;
 
 // Renvoie le tableau du signal
 double* signalArray(char *file) {
-  // File Path
+	// File Path
 
-  char *fileP = (char*) malloc(sizeof(char) * 1024);
-  char cwd[1024];
-  if(getcwd(cwd, sizeof(cwd)) == NULL)
-    err(3, "fail on getcwd");
-  strcpy(fileP, cwd);
-  strcat(fileP, "/");
-  strcat(fileP, file);
+	char *fileP = (char*) malloc(sizeof(char) * 1024);
+	char cwd[1024];
+	if(getcwd(cwd, sizeof(cwd)) == NULL)
+		err(3, "fail on getcwd");
+	strcpy(fileP, cwd);
+	strcat(fileP, "/");
+	strcat(fileP, file);
 
-  FILE *ptr = fopen(fileP, "rb");
-  //free(fileP);
-  if (ptr == NULL) {
-    printf("Error opening file\n");
-    exit(1);
-  }
-
-  // Read Header Parts
-
-  unsigned char buffer4[4];
-  unsigned char buffer2[2];
-
-  // RIFF (4 bytes)
-  fread(header.riff, sizeof(header.riff), 1, ptr);
-
-  // Overall size (4 bytes)
-  fread(buffer4, sizeof(buffer4), 1, ptr);
-  // convert little endian to big endian 4 byte int
-  header.overall_size  = buffer4[0] | (buffer4[1]<<8)
-    | (buffer4[2]<<16)
-    | (buffer4[3]<<24);
-  // Wave (4 bytes)
-  fread(header.wave, sizeof(header.wave), 1, ptr);
-
-  // FMT chunk marker (4 bytes)
-  fread(header.fmt_chunk_marker,
-      sizeof(header.fmt_chunk_marker), 1, ptr);
-
-  // Length of fmt (4 bytes)
-  fread(buffer4, sizeof(buffer4), 1, ptr);
-  header.length_of_fmt = buffer4[0] | (buffer4[1] << 8)
-    | (buffer4[2] << 16)
-    | (buffer4[3] << 24);
-
-  // Format type (2 bytes)
-  fread(buffer2, sizeof(buffer2), 1, ptr);
-  header.format_type = buffer2[0] | (buffer2[1] << 8);
-  char format_name[10] = "";
-  if (header.format_type == 1)
-    strcpy(format_name,"PCM");
-  else if (header.format_type == 6)
-    strcpy(format_name, "A-law");
-  else if (header.format_type == 7)
-    strcpy(format_name, "Mu-law");
-
-  // Channels (2 bytes)
-  fread(buffer2, sizeof(buffer2), 1, ptr);
-  header.channels = buffer2[0] | (buffer2[1] << 8);
-
-  // Sample rate (4 bytes)
-  fread(buffer4, sizeof(buffer4), 1, ptr);
-  header.sample_rate = buffer4[0] | (buffer4[1] << 8)
-    | (buffer4[2] << 16)
-    | (buffer4[3] << 24);
-
-  sampleRate = header.sample_rate;
-
-  // Byterate (4 bytes)
-  fread(buffer4, sizeof(buffer4), 1, ptr);
-  header.byterate  = buffer4[0] | (buffer4[1] << 8)
-    | (buffer4[2] << 16)
-    | (buffer4[3] << 24);
-
-  // Block align (2 bytes)
-  fread(buffer2, sizeof(buffer2), 1, ptr);
-  header.block_align = buffer2[0] | (buffer2[1] << 8);
-
-  // Bits per sample (2 bytes)
-  fread(buffer2, sizeof(buffer2), 1, ptr);
-  header.bits_per_sample = buffer2[0] | (buffer2[1] << 8);
-
-  // Data chunk header (4 bytes)
-  fread(header.data_chunk_header,
-      sizeof(header.data_chunk_header), 1, ptr);
-
-  // Data size (4 bytes)
-  fread(buffer4, sizeof(buffer4), 1, ptr);
-  header.data_size = buffer4[0] | (buffer4[1] << 8)
-    | (buffer4[2] << 16)
-    | (buffer4[3] << 24 );
-
-
-  // Number of samples
-  num_samples = (8 * header.data_size)
-    / (header.channels * header.bits_per_sample);
-
-  // Size of each sample
-  long size_of_each_sample = (header.channels * header.bits_per_sample) / 8;
-
-  // File duration
-  // float duration_in_seconds = (float) header.overall_size / header.byterate;
-
-  double *tab = malloc(sizeof(double) * num_samples);
-  long i = 0;
-  char data_buffer[size_of_each_sample];
-  int  size_is_correct = true;
-  long bytes_in_each_channel = (size_of_each_sample / header.channels);
-  if ((bytes_in_each_channel  * header.channels) != size_of_each_sample) {
-    size_is_correct = false;
-  }
-  if (size_is_correct) {
-    for (i =1; i <= num_samples; i++) {
-      int read = fread(data_buffer, sizeof(data_buffer), 1, ptr);
-      if (read == 1) {
-	unsigned int  xchannels = 0;
-	int data_in_channel = 0;
-	for (xchannels = 0; xchannels < header.channels; xchannels++ ) {
-	  // passage des petits endian en grand endian
-	  if (bytes_in_each_channel == 4) {
-	    data_in_channel = data_buffer[0] |
-	      (data_buffer[1]<<8) |
-	      (data_buffer[2]<<16) |
-	      (data_buffer[3]<<24);
-	  }
-	  else if (bytes_in_each_channel == 2) {
-	    data_in_channel = data_buffer[0] |
-	      (data_buffer[1] << 8);
-	  }
-	  else if (bytes_in_each_channel == 1) {
-	    data_in_channel = data_buffer[0];
-	  }
-	  tab[i] = data_in_channel;
+	FILE *ptr = fopen(fileP, "rb");
+	//free(fileP);
+	if (ptr == NULL) {
+		printf("Error opening file\n");
+		exit(1);
 	}
-      }
-    }
-  }
-  //free(fileP);
-  return tab;
+
+	// Read Header Parts
+
+	unsigned char buffer4[4];
+	unsigned char buffer2[2];
+
+	// RIFF (4 bytes)
+	fread(header.riff, sizeof(header.riff), 1, ptr);
+
+	// Overall size (4 bytes)
+	fread(buffer4, sizeof(buffer4), 1, ptr);
+	// convert little endian to big endian 4 byte int
+	header.overall_size  = buffer4[0] | (buffer4[1]<<8)
+		| (buffer4[2]<<16)
+		| (buffer4[3]<<24);
+	// Wave (4 bytes)
+	fread(header.wave, sizeof(header.wave), 1, ptr);
+
+	// FMT chunk marker (4 bytes)
+	fread(header.fmt_chunk_marker,
+			sizeof(header.fmt_chunk_marker), 1, ptr);
+
+	// Length of fmt (4 bytes)
+	fread(buffer4, sizeof(buffer4), 1, ptr);
+	header.length_of_fmt = buffer4[0] | (buffer4[1] << 8)
+		| (buffer4[2] << 16)
+		| (buffer4[3] << 24);
+
+	// Format type (2 bytes)
+	fread(buffer2, sizeof(buffer2), 1, ptr);
+	header.format_type = buffer2[0] | (buffer2[1] << 8);
+	char format_name[10] = "";
+	if (header.format_type == 1)
+		strcpy(format_name,"PCM");
+	else if (header.format_type == 6)
+		strcpy(format_name, "A-law");
+	else if (header.format_type == 7)
+		strcpy(format_name, "Mu-law");
+
+	// Channels (2 bytes)
+	fread(buffer2, sizeof(buffer2), 1, ptr);
+	header.channels = buffer2[0] | (buffer2[1] << 8);
+
+	// Sample rate (4 bytes)
+	fread(buffer4, sizeof(buffer4), 1, ptr);
+	header.sample_rate = buffer4[0] | (buffer4[1] << 8)
+		| (buffer4[2] << 16)
+		| (buffer4[3] << 24);
+
+	sampleRate = header.sample_rate;
+
+	// Byterate (4 bytes)
+	fread(buffer4, sizeof(buffer4), 1, ptr);
+	header.byterate  = buffer4[0] | (buffer4[1] << 8)
+		| (buffer4[2] << 16)
+		| (buffer4[3] << 24);
+
+	// Block align (2 bytes)
+	fread(buffer2, sizeof(buffer2), 1, ptr);
+	header.block_align = buffer2[0] | (buffer2[1] << 8);
+
+	// Bits per sample (2 bytes)
+	fread(buffer2, sizeof(buffer2), 1, ptr);
+	header.bits_per_sample = buffer2[0] | (buffer2[1] << 8);
+
+	// Data chunk header (4 bytes)
+	fread(header.data_chunk_header,
+			sizeof(header.data_chunk_header), 1, ptr);
+
+	// Data size (4 bytes)
+	fread(buffer4, sizeof(buffer4), 1, ptr);
+	header.data_size = buffer4[0] | (buffer4[1] << 8)
+		| (buffer4[2] << 16)
+		| (buffer4[3] << 24 );
+
+
+	// Number of samples
+	num_samples = (8 * header.data_size)
+		/ (header.channels * header.bits_per_sample);
+
+	// Size of each sample
+	long size_of_each_sample = (header.channels * header.bits_per_sample) / 8;
+
+	// File duration
+	// float duration_in_seconds = (float) header.overall_size / header.byterate;
+
+	double *tab = malloc(sizeof(double) * num_samples);
+	long i = 0;
+	char data_buffer[size_of_each_sample];
+	int  size_is_correct = true;
+	long bytes_in_each_channel = (size_of_each_sample / header.channels);
+	if ((bytes_in_each_channel  * header.channels) != size_of_each_sample) {
+		size_is_correct = false;
+	}
+	if (size_is_correct) {
+		for (i = 0; i < num_samples; i++) {
+			int read = fread(data_buffer, sizeof(data_buffer), 1, ptr);
+			if (read == 1) {
+				unsigned int  xchannels = 0;
+				int data_in_channel = 0;
+				for (xchannels = 0; xchannels < header.channels; xchannels++ ) {
+					// passage des petits endian en grand endian
+					if (bytes_in_each_channel == 4) {
+						data_in_channel = data_buffer[0] |
+							(data_buffer[1]<<8) |
+							(data_buffer[2]<<16) |
+							(data_buffer[3]<<24);
+					}
+					else if (bytes_in_each_channel == 2) {
+						data_in_channel = data_buffer[0] |
+							(data_buffer[1] << 8);
+					}
+					else if (bytes_in_each_channel == 1) {
+						data_in_channel = data_buffer[0];
+					}
+					tab[i] = data_in_channel;
+				}
+			}
+		}
+	}
+	//free(fileP);
+	return tab;
 }
 
 // Pré-accentue le signal
 double* pre_emphasis(double *signal) {
-  double *PE_signal = malloc(sizeof(double) * num_samples);
-  PE_signal[0] = signal[0];
-  for (int i = 1; i < num_samples; i++) {
-    PE_signal[i] = signal[i] - (0.95 * signal[i-1]);
-  }
-  return PE_signal;
+	double *PE_signal = malloc(sizeof(double) * num_samples);
+	PE_signal[0] = signal[0];
+	for (int i = 1; i < num_samples; i++) {
+		PE_signal[i] = signal[i] - (0.95 * signal[i-1]);
+	}
+	return PE_signal;
 }
 
 long frameNbr() {
-  return num_samples / (floor(header.sample_rate * 0.020)); // = 20 ms
-  //(standard frame length)
+	return num_samples / (floor(header.sample_rate * 0.020)); // = 20 ms
+	//(standard frame length)
 }
 
 long frameSampleNbr() {
-  return floor(header.sample_rate * 0.020);
+	return floor(header.sample_rate * 0.020);
 }
 
 //Applique hanning sur les frames
 double** hannWindow(double* PA_signal) {
-  long frameSampleNbr_ = frameSampleNbr();
-  long frameNbr_ = frameNbr();
-  long step = floor(frameSampleNbr_ / 2);
-  double **frames = malloc(sizeof(double*) * frameNbr_);
-  long i = 0; // scanning index for PA_signal
-  long j = 0; // index for frames
-  long k = 0; // index for frames[j]
-  while (i < num_samples) {
-    frames[j] = malloc(sizeof(double) * frameSampleNbr_);
-    for (k = 0; k < frameSampleNbr_; k++, i++) {
-      frames[j][k] = PA_signal[i] *
-	(0.54 - 0.46 * cos((2 * PI * i) / (frameSampleNbr_ - 1)));
-    }
-    j++;
-    i -= step;
-  }
-  return frames;
+	long frameSampleNbr_ = frameSampleNbr();
+	long frameNbr_ = frameNbr();
+	long step = floor(frameSampleNbr_ / 2);
+	double **frames = malloc(sizeof(double*) * frameNbr_);
+	long i = 0; // scanning index for PA_signal
+	long j = 0; // index for frames
+	long k = 0; // index for frames[j]
+	while (i < num_samples) {
+		frames[j] = malloc(sizeof(double) * frameSampleNbr_);
+		for (k = 0; k < frameSampleNbr_; k++, i++) {
+			frames[j][k] = PA_signal[i] *
+				(0.54 - 0.46 * cos((2 * PI * i) / (frameSampleNbr_ - 1)));
+		}
+		j++;
+		i -= step;
+	}
+	return frames;
 }
 
 /*cplx DFT_i(double *hannWindow_i) {
-	cplx DFT_i = malloc(sizeof(cplx) * FFTsize);
-	long frameSampleNbr_ = frameSampleNbr();
-	for (long j = 0; j < FFTsize; j++) {
-		cplx sum;
-		for (long n = 0; n < frameSampleNbr_; n++) {
-			sum += hannWindow_i[n] * exp()
-		}
-	}
-} */
+  cplx DFT_i = malloc(sizeof(cplx) * FFTsize);
+  long frameSampleNbr_ = frameSampleNbr();
+  for (long j = 0; j < FFTsize; j++) {
+  cplx sum;
+  for (long n = 0; n < frameSampleNbr_; n++) {
+  sum += hannWindow_i[n] * exp()
+  }
+  }
+  } */
 
 //DFT on each frames
 cplx** DFT(double** frames) {
 	long frameNbr_ = frameNbr();
 	long frameSampleNbr_ = frameSampleNbr();
 	/*
-	long k = 1;
-	while ((k*2) < num_samples){
-		k *= 2;
-	}
-	*/
+	   long k = 1;
+	   while ((k*2) < num_samples){
+	   k *= 2;
+	   }
+	 */
 
 	long k = 1;
 	while (k < frameSampleNbr_ ) {
@@ -231,10 +231,10 @@ cplx** DFT(double** frames) {
 		}
 		fft(DFTframes[i], k, PI);
 		/*cplx DFT_[FFTsize];
-		for (long l = 0; l < (FFTsize / 2) + 1; l++) {
-			DFT_[l] = DFTframes[i][l];
-		}
-		DFTframes[i] = DFT_;*/
+		  for (long l = 0; l < (FFTsize / 2) + 1; l++) {
+		  DFT_[l] = DFTframes[i][l];
+		  }
+		  DFTframes[i] = DFT_;*/
 	}
 	//printf("%ld, %ld\n", k, (FFTsize / 2) + 1);
 	cplx **DFTframes_ = malloc(sizeof(cplx*) * frameNbr_);
@@ -250,7 +250,7 @@ cplx** DFT(double** frames) {
 		}
 
 	}
-  //free(DFTframes);
+	//free(DFTframes);
 	return DFTframes_;
 }
 
@@ -263,7 +263,7 @@ double** PEPS(cplx **DFTed_frames) {
 		for (long j = 0; j < (FFTsize / 2) + 1; j++) {
 			cplx Z = DFTed_frames[i][j];
 			power_spec[i][j] = ((creal (Z) * creal(Z)) + (cimag (Z) * cimag
-			(Z))) / FFTsize;
+						(Z))) / FFTsize;
 		}
 	}
 	return power_spec;
@@ -323,13 +323,13 @@ double** filterbank (double sampleRate) {
 				filterbanks[i][j] = 0;
 		}
 	}
-  //free(points);
+	//free(points);
 	/*for (long j = 0; j < filterbankNbr; j++) {
-		printf("Filterbank %ld:\n", j);
-		for (long i = 0; i < ((FFTsize / 2) + 1); i++) {
-			printf("%f\n", filterbanks[j][i]);
-		}
-	}*/
+	  printf("Filterbank %ld:\n", j);
+	  for (long i = 0; i < ((FFTsize / 2) + 1); i++) {
+	  printf("%f\n", filterbanks[j][i]);
+	  }
+	  }*/
 	return filterbanks;
 }
 
@@ -380,12 +380,15 @@ double** DCT_II(double **logged_filterbank_energies) {
 	return DCT;
 }
 
-/*int main(int argc, char* argv[]) {
+/*
+int main(int argc, char* argv[]) {
 	(void)argc;
 	double *signal = signalArray(argv[1]);
-*/
+ */
+
 double **MFCC(char *file) {
 	double *signal = signalArray(file);
+
 	frameNbr_ = frameNbr();
 	double *signal_pre_emphasis = pre_emphasis(signal);
 	//free(signal);
@@ -398,26 +401,26 @@ double **MFCC(char *file) {
 	  free(framed_signal);*/
 	double **power_spectrum = PEPS(DFTed_frames);
 	/*for (long i = 0; i < frameNbr_; i++) {
-		free(DFTed_frames[i]);
-	}
-	free(DFTed_frames);*/
+	  free(DFTed_frames[i]);
+	  }
+	  free(DFTed_frames);*/
 	double **filterBank = filterbank(sampleRate);
 	double **energies = filterbank_energies(filterBank, power_spectrum);
-/*	for (long i = 0; i < filterbankNbr; i++) {
+	/*	for (long i = 0; i < filterbankNbr; i++) {
 		free(filterBank[i]);
-	}
-	free(filterBank);
-	for (long i = 0; i < frameNbr_; i++) {
+		}
+		free(filterBank);
+		for (long i = 0; i < frameNbr_; i++) {
 		free(power_spectrum[i]);
-	}
-	free(power_spectrum);*/
+		}
+		free(power_spectrum);*/
 	double **logged_energies = logged_filterbank_energies(energies);
 	double **DCT_of_energies = DCT_II(logged_energies);
-/*	for (long i = 0; i < frameNbr_; i++) {
+	/*	for (long i = 0; i < frameNbr_; i++) {
 		free(logged_energies[i]);
-	}
-	free(logged_energies);
-*/
+		}
+		free(logged_energies);
+	 */
 	double **feat_vect = malloc(sizeof(double*) * frameNbr_);
 
 	for (long i = 0; i < frameNbr_; i++) {
@@ -427,15 +430,15 @@ double **MFCC(char *file) {
 		}
 		//free(DCT_of_energies[i]);
 	}
-//	free(DCT_of_energies);
+	//	free(DCT_of_energies);
 
 	/*for (long a = 0; a < frameNbr_; a++) {
-		printf(" %ld : ", a);
-		for (long b  = 0; b < 13; b++) {
-			printf("%f  ", feat_vect[a][b]);
-		}
-		printf("\n");
-	}*/
+	  printf(" %ld : ", a);
+	  for (long b  = 0; b < 13; b++) {
+	  printf("%f  ", feat_vect[a][b]);
+	  }
+	  printf("\n");
+	  }*/
 
 	return feat_vect;
 	//return 0;
