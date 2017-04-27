@@ -281,7 +281,7 @@ int main(int argc, char const *argv[])
 
      // Open sound file for writing
      if (argv[1]==NULL) {
-       errx(3,"Error no name for the output file\n");
+       errx(3,"Error no name for the output file");
      }
      SNDFILE *sndFile = sf_open(argv[1], SFM_WRITE, &info);
      if (sndFile == NULL) {
