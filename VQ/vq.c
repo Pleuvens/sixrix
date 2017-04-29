@@ -57,7 +57,7 @@ long long thresh(long long **c1, long long **c2, int len, int len2)
 void generate(long long ***vects, long long **codeword, long long *len_o)
 {
 	int len = 13;
-	int M = 4;
+	int M = 43;
 	int nb_class = 43;
 	long long **codeword2 = NULL;
 	while(thresh(codeword,codeword2,nb_class,len) > 1)
