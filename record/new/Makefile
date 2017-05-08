@@ -19,6 +19,6 @@ clean:
 	rm -f ${OBJ} ${DEP} main
 
 remove:
-		rm -f ${OBJ} ${DEP} main *.raw *.wav
+		rm -f ${OBJ} ${DEP} main *.raw *.wav *.flac
 
 # END
