@@ -462,6 +462,16 @@ double **MFCC(char *file) {
 		}
 		printf("\n");
 	}*/
+	FILE *f = fopen("./open","w");
+	for(long i = 0; i < frameNbr_; ++i)
+	{
+		for(int j = 0; j < 13; j++)
+		{
+			fprintf(f,"%f ",feat_vect[i][j]);
+		}
+		fprintf(f,"\n");
+	}
+	fclose(f);
 	return feat_vect;
 	//return 0;
 }
