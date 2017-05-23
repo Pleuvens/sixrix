@@ -11,7 +11,7 @@ long long dist(long long *x, long long *y, int len)
 	long long res = 0;
 	for(int i = 0; i < len; i++)
 	{
-		res += x[i] - y[i] * x[i] - y[i];
+		res += (x[i] - y[i]) * (x[i] - y[i]);
 	}
 	if(res < 0)
 	{
@@ -184,7 +184,7 @@ long long** loadVal(long long **codeword, int *l1, int l2)
 char* state_match(int index)
 {
 	char *ph = NULL;
-	switch(index)
+	switch(index/5)
 	{
 		case 0:
 			ph = "ay";
@@ -329,7 +329,7 @@ void randomCW(long long **cw, int nb_class, int len)
 		cw[i] = calloc(len,sizeof(long long));
 		for(int j = 0; j < len; ++j)
 		{
-			cw[i][j] = rand() % 490 + (-40);
+			cw[i][j] = rand() % 490 -40;
 		}
 	}
 }
@@ -342,7 +342,7 @@ void mainProcess(char *path)
 	long long **oo = (long long**)MFCC(path);
 	long l = frameNbr_;
 	//Load file
-	int nb_class = 43;
+	int nb_class = 43*5;
 	long long *len_o = calloc(nb_class,sizeof(long long));
 	long long **codeword = NULL;	
 	FILE *f = NULL;
@@ -354,92 +354,17 @@ void mainProcess(char *path)
 		codeword = calloc(nb_class,sizeof(long long*));	
 		randomCW(codeword,nb_class,13);	
 		long long ***vects = calloc(nb_class,sizeof(long long**));	
-		vects[0] = (long long**)MFCC("../phonemes/193262__margo-heston__ay.wav");
-		len_o[0] = frameNbr_;
-		vects[1] = (long long**)MFCC("../phonemes/193263__margo-heston__aww.wav");
-		len_o[1] = frameNbr_;
-		vects[2] = (long long**)MFCC("../phonemes/193264__margo-heston__ahh.wav");
-		len_o[2] = frameNbr_;
-		vects[3] = (long long**)MFCC("../phonemes/193265__margo-heston__aah.wav");
-		len_o[3] = frameNbr_;
-		vects[4] = (long long**)MFCC("../phonemes/193266__margo-heston__eh.wav");
-		len_o[4] = frameNbr_;
-		vects[5] = (long long**)MFCC("../phonemes/193267__margo-heston__ee.wav");
-		len_o[5] = frameNbr_;
-		vects[6] = (long long**)MFCC("../phonemes/193268__margo-heston__d.wav");
-		len_o[6] = frameNbr_;
-		vects[7] = (long long**)MFCC("../phonemes/193269__margo-heston__aye.wav");
-		len_o[7] = frameNbr_;
-		vects[8] = (long long**)MFCC("../phonemes/193270__margo-heston__ff.wav");
-		len_o[8] = frameNbr_;
-		vects[9] = (long long**)MFCC("../phonemes/193271__margo-heston__ewe.wav");
-		len_o[9] = frameNbr_;
-		vects[10] = (long long**)MFCC("../phonemes/193272__margo-heston__ss.wav");
-		len_o[10] = frameNbr_;
-		vects[11] = (long long**)MFCC("../phonemes/193273__margo-heston__tt.wav");
-		len_o[11] = frameNbr_;
-		vects[12] = (long long**)MFCC("../phonemes/193274__margo-heston__qu.wav");
-		len_o[12] = frameNbr_;
-		vects[13] = (long long**)MFCC("../phonemes/193275__margo-heston__rr.wav");
-		len_o[13] = frameNbr_;
-		vects[14] = (long long**)MFCC("../phonemes/193276__margo-heston__jj.wav");
-		len_o[14] = frameNbr_;
-		vects[15] = (long long**)MFCC("../phonemes/193277__margo-heston__ih.wav");
-		len_o[15] = frameNbr_;
-		vects[16] = (long long**)MFCC("../phonemes/193278__margo-heston__hh.wav");
-		len_o[16] = frameNbr_;
-		vects[17] = (long long**)MFCC("../phonemes/193279__margo-heston__g.wav");
-		len_o[17] = frameNbr_;
-		vects[18] = (long long**)MFCC("../phonemes/193280__margo-heston__nn.wav");
-		len_o[18] = frameNbr_;
-		vects[19] = (long long**)MFCC("../phonemes/193281__margo-heston__mm.wav");
-		len_o[19] = frameNbr_;
-		vects[20] = (long long**)MFCC("../phonemes/193282__margo-heston__ll.wav");
-		len_o[20] = frameNbr_;
-		vects[21] = (long long**)MFCC("../phonemes/193283__margo-heston__k.wav");
-		len_o[21] = frameNbr_;
-		vects[22] = (long long**)MFCC("../phonemes/193284__margo-heston__pp.wav");
-		len_o[22] = frameNbr_;
-		vects[23] = (long long**)MFCC("../phonemes/193285__margo-heston__ohh.wav");
-		len_o[23] = frameNbr_;
-		vects[24] = (long long**)MFCC("../phonemes/193304__margo-heston__err.wav");
-		len_o[24] = frameNbr_;
-		vects[25] = (long long**)MFCC("../phonemes/193305__margo-heston__ch.wav");
-		len_o[25] = frameNbr_;
-		vects[26] = (long long**)MFCC("../phonemes/193306__margo-heston__au.wav");
-		len_o[26] = frameNbr_;
-		vects[27] = (long long**)MFCC("../phonemes/193307__margo-heston__arr.wav");
-		len_o[27] = frameNbr_;
-		vects[28] = (long long**)MFCC("../phonemes/193308__margo-heston__oww.wav");
-		len_o[28] = frameNbr_;
-		vects[29] = (long long**)MFCC("../phonemes/193309__margo-heston__ooo.wav");
-		len_o[29] = frameNbr_;
-		vects[30] = (long long**)MFCC("../phonemes/193310__margo-heston__nng.wav");
-		len_o[30] = frameNbr_;
-		vects[31] = (long long**)MFCC("../phonemes/193311__margo-heston__hw.wav");
-		len_o[31] = frameNbr_;
-		vects[32] = (long long**)MFCC("../phonemes/193312__margo-heston__shh.wav");
-		len_o[32] = frameNbr_;
-		vects[33] = (long long**)MFCC("../phonemes/193313__margo-heston__oy.wav");
-		len_o[33] = frameNbr_;
-		vects[34] = (long long**)MFCC("../phonemes/193318__margo-heston__uh.wav");
-		len_o[34] = frameNbr_;
-		vects[35] = (long long**)MFCC("../phonemes/193319__margo-heston__oo.wav");
-		len_o[35] = frameNbr_;
-		vects[36] = (long long**)MFCC("../phonemes/193320__margo-heston__th.wav");
-		len_o[36] = frameNbr_;
-		vects[37] = (long long**)MFCC("../phonemes/193321__margo-heston__zzz.wav");
-		len_o[37] = frameNbr_;
-		vects[38] = (long long**)MFCC("../phonemes/193322__margo-heston__vvv.wav");
-		len_o[38] = frameNbr_;
-		vects[39] = (long long**)MFCC("../phonemes/193323__margo-heston__kss.wav");
-		len_o[39] = frameNbr_;
-		vects[40] = (long long**)MFCC("../phonemes/193324__margo-heston__yyuh.wav");
-		len_o[40] = frameNbr_;
-		vects[41] = (long long**)MFCC("../phonemes/193325__margo-heston__zh.wav");
-		len_o[41] = frameNbr_;
-		vects[42] = (long long**)MFCC("../phonemes/193326__margo-heston__wuh.wav");
-		len_o[42] = frameNbr_;
+		for(int i = 0; i < nb_class/5; ++i) 
+		{
+			for(int j = 0; j < 5; ++j)
+			{
+				char *path = malloc(22*sizeof(char));
+				sprintf(path,"../phonemes/%d.%d.wav",i+1,j+1);
+				printf("%s\n",path);
+				vects[i*5+j] = (long long**)MFCC(path);
+				len_o[i*5+j] = frameNbr_;
+			}
+		}
 		generate(vects,codeword,len_o);
 		saveVal(codeword,nb_class,13);
 	}
