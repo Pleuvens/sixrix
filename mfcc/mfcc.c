@@ -462,7 +462,7 @@ double **MFCC(char *file) {
 		}
 		printf("\n");
 	}*/
-	FILE *f = fopen("./open","w");
+	FILE *f = fopen("./p","w");
 	for(long i = 0; i < frameNbr_; ++i)
 	{
 		for(int j = 0; j < 13; j++)

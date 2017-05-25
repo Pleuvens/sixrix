@@ -313,7 +313,7 @@ char* state_match(int index)
 			ph = "zh";
 			break;
 		case 42:
-			ph = "eh";
+			ph = "wuh";
 			break;
 		default:
 			ph = "null";
