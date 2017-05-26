@@ -332,7 +332,6 @@ double viterbi(struct automate *aut, char **states, char **obs,char **path)
 		free(tab_path[k]);
 	}
 	free(tab_path);
-	printf("\n");
 	free(max[aut->len-1]);
 	free(max);
 	return res;
@@ -439,7 +438,6 @@ int is_learning(struct automate *aut, double *init, double *a, double *b, double
 	}
 	diff += new - prev;
 	update_aut(aut,prob_init,prob_a,prob_b);
-	printf("is_learning : %f\n",(diff/3));
 	return (diff/3) <= 0;
 }
 
@@ -540,30 +538,6 @@ double *b,double *prob_init,double *prob_a,double *prob_b)
 	free(xi_tab);
 	free(gamma_tab[aut->len-1]);
 	free(gamma_tab);
-	printf("Final values\nA:\n");
-	for(int i = 0; i < aut->nb_states; ++i)
-	{
-		for(int j = 0; j < aut->nb_states; ++j)
-		{
-			printf("%f ",prob_a[i*aut->nb_states+j]);
-		}
-		printf("\n");
-	}
-	printf("\nB\n");
-	for(int i = 0; i < aut->nb_states; ++i)
-	{
-		for(int j = 0; j < aut->nb_k; ++j)
-		{
-			printf("%f ",prob_b[i*aut->nb_k+j]);
-		}
-		printf("\n");
-	}
-	printf("\nInit proba\n");
-	for(int i = 0; i < aut->nb_states; ++i)
-	{
-		printf("%f\n",prob_init[i]);
-	}
-	printf("\n");
 }
 
 void free_aut(struct automate *aut)
@@ -628,19 +602,19 @@ void loadVal(double **proba, double **A, double **B, int *nb_states, int *nb_k)
 	fscanf(f,"%d",nb_states);
 	fscanf(f,"%d",nb_k);
 	
-	for(int i = 0; i < aut->nb_states; ++i)
+	for(int i = 0; i < *nb_states; ++i)
 	{
 		//t_index = i * aut->nb_states;
-		for(int k = 0; k < aut->nb_states; ++k)
+		for(int k = 0; k < *nb_states; ++k)
 		{
 			fscanf(f,"%f", A[i * *nb_states + k]);
 		}
 		//fprintf("\n");
 	}
-	for(int i = 0; i < aut->nb_states; ++i)
+	for(int i = 0; i < *nb_states; ++i)
 	{
 		//t_index = i * aut->nb_states;
-		for(int k = 0; k < aut->nb_k; ++k)
+		for(int k = 0; k < *nb_k; ++k)
 		{
 			fscanf(f,"%f", B[i * *nb_states + k]);
 		}
@@ -649,26 +623,37 @@ void loadVal(double **proba, double **A, double **B, int *nb_states, int *nb_k)
 	fclose(f);
 }
 
+void copy_init(double *src, double *dst,int len) {
+	for(int i = 0; i < len; ++i)
+	{
+		dst[i] = src[i];
+	}
+}
+
 void learning(struct automate *aut, char ***states, char **obs, double *proba_init,
 double *A, double *B, int training_len)
 {
 	double *prob_init = NULL;
 	double *prob_a = NULL;
 	double *prob_b = NULL;
-	double *a = A;
+	double *a = calloc(aut->nb_states*aut->nb_states,sizeof(double));
+	copy_init(A,a,aut->nb_states*aut->nb_states);
 	double *b = B;
-	double *p_init = proba_init;
+	double *p_init = calloc(aut->nb_states,sizeof(double));
+	copy_init(proba_init,p_init,aut->nb_states);
 	while(!is_learning(aut,p_init,a,b,prob_init,prob_a,prob_b))
 	{	
 		for(int i = 0; i < training_len; ++i)
 		{
-			if(prob_init && prob_a && prob_b)
+			if(prob_init && prob_a)
 			{	
 				free(p_init);
 				free(a);
-				free(b);
-				p_init = prob_init;
-				a = prob_a;
+				//free(b);
+				p_init = calloc(aut->nb_states,sizeof(double));
+				copy_init(prob_init,p_init,aut->nb_states);
+				a = calloc(aut->nb_states*aut->nb_states,sizeof(double));
+				copy_init(prob_a,a,aut->nb_states*aut->nb_states);
 				b = prob_b;
 				prob_init = NULL;
 				prob_a = NULL;
@@ -676,7 +661,7 @@ double *A, double *B, int training_len)
 			}	
 			char **path = malloc(aut->len*sizeof(char*));
 			viterbi(aut,states[i],obs,path);
-			prob_b = calloc(sizeof(double),aut->nb_states*aut->nb_k);
+			//prob_b = calloc(sizeof(double),aut->nb_states*aut->nb_k);
 			prob_a = calloc(sizeof(double),aut->nb_states*aut->nb_states);
 			prob_init = calloc(sizeof(double),aut->nb_states);
 			baum_welch(aut,path,obs,p_init,a,b,prob_init,prob_a,
@@ -732,28 +717,33 @@ int main()
 	double B[] = {0.1,0.4,0.5,0.7,0.2,0.1};
 	 */
 	/* TEST 3 */
-	int nb_states = 2;
+	int nb_states = 4;
 	//Test Pluie Soleil
-	int nb_obs = 20;	
-	int nb_k = 3;
+	int nb_obs = 4;	
+	int nb_k = 0;
 	//SET TRAMSITION PROBA
+	/*
 	char *states[] = {"ay  ","aww ","ahh ","aah ","eh  ","ee  ","d   ","aye ","ff  ","ewe ","ss  ","tt  ","qu  ","rr  ","jj  ","ih  ","hh  ","g   ",
 	"nn  ","mm  ","ll  ","k   ","pp  ","ohh ","err ","ch  ","au  ","arr ","oww ","ooo ","nng ","hw  ","shh ","oy  ","uh  ","oo  ","th  ","zzz ","vvv ",
 	"kss ","yyuh","zh  ","wuh "};
+	
 	double proba_init[] = {0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,
 	0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,
 	0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,
 	0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,
 	0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395};
+	*/
+	char *states[] = {"ohh","pp ", "eh ", "nn "};
+	double proba_init[] = {0.25,0.25,0.25,0.25};
 	
+	char **obj = NULL;
 
-	char *obj[] = {"B","M","E"};
-
-	char *obs[] = {"ohh ","pp  ","","nn  "};
+	char *obs[] = {"ohh","pp ","eh ","nn "};
 	//char *test_states[] = {"Hot ","Hot ","Cold","Cold"};
 	//char *test_states2[] = {"Cold","Cold","Cold","Hot"};
 	//int test_len = 2;
-
+	double A[] = {0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25};
+	/*
 	double A[] = {0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,
 	0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,
 	0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,
@@ -974,41 +964,10 @@ int main()
 	0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,
 	0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,
 	0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,0.02325581395,
-	};
-	double B[] = {0.4,0.1,0.5,0.1,0.5,0.4};
-	printf("Initial values\nA:\n");
-	for(int i = 0; i < nb_states; ++i)
-	{
-		for(int j = 0; j < nb_states; ++j)
-		{
-			printf("%f ",A[i*nb_states+j]);
-		}
-		printf("\n");
-	}
-	printf("\nB\n");
-	for(int i = 0; i < nb_states; ++i)
-	{
-		for(int j = 0; j < nb_k; ++j)
-		{
-			printf("%f ",B[i*nb_k+j]);
-		}
-		printf("\n");
-	}
-	printf("\nInit proba\n");
-	for(int i = 0; i < nb_states; ++i)
-	{
-		printf("%f\n",proba_init[i]);
-	}
-	printf("\n");
+	}; */
+	double *B = NULL;
 	struct automate *aut = make_automate(states, obj, proba_init, A, B, nb_states,nb_obs, nb_k);
 
-	//printf("is_p: %d\nis_t: %d\nis_e: %d\n",is_p,is_t,is_e);
-
-	//double res = compute(aut,test_states2,obs, 2);
-	//double **alpha = calloc(sizeof(double*),aut->nb_obs);
-	//double **beta = calloc(sizeof(double*),aut->nb_obs);
-	//double res = forward_recursion(aut,test_states,test_len,obs,alpha);
-	//double res = backward_recursion(aut,test_states,test_len,obs,beta);
 	char ***s = malloc(sizeof(char**));
 	s[0] = states;
 	learning(aut,s,obs,proba_init,A,B,1);
