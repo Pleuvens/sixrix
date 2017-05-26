@@ -35,8 +35,7 @@ AudioData initAudioData(uint32_t sampleRate, uint16_t channels, int type)
     return data;
 }
 
-float avg(float *data, size_t length)
-{
+float avg(float *data, size_t length){
     float sum = 0;
     for (size_t i = 0; i < length; i++)
     {
@@ -45,15 +44,14 @@ float avg(float *data, size_t length)
     return (float) sum / length;
 }
 
-long storeFLAC(AudioData *data, const char *fileName)
-{
+long storeFLAC(AudioData *data, const char *fileName){
 
     uint8_t err = SF_ERR_NO_ERROR;
     SF_INFO sfinfo =
     {
         .channels = data->numberOfChannels,
         .samplerate = data->sampleRate,
-        .format = SF_FORMAT_FLAC | SF_FORMAT_PCM_16
+        .format = SF_FORMAT_WAV | SF_FORMAT_PCM_16
     };
 
     SNDFILE *outfile = sf_open(fileName, SFM_WRITE, &sfinfo);
@@ -73,7 +71,9 @@ long storeFLAC(AudioData *data, const char *fileName)
 int main(void)
 {
     PaError err = paNoError;
-    if((err = Pa_Initialize())) goto done;
+    if(err != Pa_Initialize()){
+        goto done;
+    }
     const PaDeviceInfo *info = Pa_GetDeviceInfo(Pa_GetDefaultInputDevice());
     AudioData data = initAudioData(44100, info->maxInputChannels, paFloat32);
     AudioSnippet sampleBlock =
@@ -120,14 +120,16 @@ int main(void)
             double test = difftime(time(&silence), talking);
             if (test >= 1.5 && test <= 10)
             {
+                printf("Done Listening\n");
                 char buffer[100];
-                snprintf(buffer, 100, "file:%d.flac", i);
+                snprintf(buffer, 100, "file:%d.wav", i);
                 storeFLAC(&data, buffer);
                 talking = 0;
                 free(data.recordedSamples);
                 data.recordedSamples = NULL;
                 data.size = 0;
             }
+          //  goto done;
         }
     }
 
