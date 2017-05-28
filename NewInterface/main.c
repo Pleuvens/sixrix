@@ -3,6 +3,7 @@
 # include <gtk/gtk.h>
 
 # include "../VQ/vq.c"
+# include "../HMM_VENS/hmm.c"
 
 char *k;
 GtkBuilder *builder;
@@ -175,7 +176,8 @@ int main(int argc, char *argv[]){
     }
     if(i == 2){
       //run prog
-      mainProcess(k);
+      char**obs = mainProcess(k);
+	  mainHMM(obs);
     }
     i = showmenu(screen, font);
   }

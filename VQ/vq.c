@@ -58,7 +58,7 @@ void generate(long long ***vects, long long **codeword, long long *len_o)
 {
 	int len = 13;
 	int M = 43;
-	int nb_class = 43;
+	int nb_class = 4;
 	long long **codeword2 = NULL;
 	while(thresh(codeword,codeword2,nb_class,len) > 1)
 	{
@@ -187,17 +187,18 @@ char* state_match(int index)
 	switch(index/5)
 	{
 		case 0:
-			ph = "ay";
+			ph = "c1";
 			break;
 		case 1:
-			ph = "aww";
+			ph = "c2";
 			break;
 		case 2:
-			ph = "ahh";
+			ph = "c3";
 			break;
 		case 3:
-			ph = "aah";
+			ph = "c4";
 			break;
+		/*
 		case 4:
 			ph = "eh";
 			break;
@@ -315,6 +316,7 @@ char* state_match(int index)
 		case 42:
 			ph = "wuh";
 			break;
+		*/
 		default:
 			ph = "null";
 			break;
@@ -334,7 +336,7 @@ void randomCW(long long **cw, int nb_class, int len)
 	}
 }
 
-void mainProcess(char *path)
+char **mainProcess(char *path)
 {
 	extern long frameNbr_;
 	printf("%s\n",path);
@@ -383,8 +385,8 @@ void mainProcess(char *path)
 		printf("%s\n",res[i]);
 		free(res[i]);
 	}
-	free(res);
-
+	frameNbr_ = l;
+	return res;
 }
 
 /*
