@@ -8,7 +8,7 @@ struct tuple {
 
 struct state {
 	char *name;
-	double p_init; //Probability of being the initial state
+	long double p_init; //Probability of being the initial state
 	struct tuple *a; //Probability of the transition between 2 states 
 	struct tuple *b; //Probavility of containing element k
 };

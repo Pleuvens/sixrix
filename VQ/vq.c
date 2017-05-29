@@ -380,11 +380,13 @@ char **mainProcess(char *path)
 	}
 	free(len_o);
 	free(codeword);	
+	/*
 	for(int i = 0; i < l; ++i)
 	{
 		printf("%s\n",res[i]);
 		free(res[i]);
 	}
+	*/
 	frameNbr_ = l;
 	return res;
 }
