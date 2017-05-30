@@ -155,9 +155,8 @@ static int recordCallback( const void *inputBuffer, void *outputBuffer,
 
  /*******************************************************************/
 
-int main(int argc, char const *argv[])
+int mainE(char* argv)
  {
-    (void)argc;
      PaStreamParameters  inputParameters,
                          outputParameters;
      PaStream*           stream;
@@ -280,12 +279,12 @@ int main(int argc, char const *argv[])
      info.samplerate = SAMPLE_RATE;
 
      // Open sound file for writing
-     if (argv[1]==NULL) {
+     if (argv==NULL) {
        errx(3,"Error no name for the output file");
      }
-     SNDFILE *sndFile = sf_open(argv[1], SFM_WRITE, &info);
+     SNDFILE *sndFile = sf_open(argv, SFM_WRITE, &info);
      if (sndFile == NULL) {
-       fprintf(stderr, "Error opening sound file '%s': %s\n", argv[1], sf_strerror(sndFile));
+       fprintf(stderr, "Error opening sound file '%s': %s\n", argv, sf_strerror(sndFile));
        return -1;
      }
 

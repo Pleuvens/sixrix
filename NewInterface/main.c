@@ -2,6 +2,7 @@
 # include <SDL/SDL_ttf.h>
 # include <gtk/gtk.h>
 
+# include "../record/test.c"
 # include "../VQ/vq.c"
 # include "../HMM_VENS/hmm.c"
 
@@ -160,7 +161,7 @@ int main(int argc, char *argv[]){
   int i = showmenu(screen, font);
   while(i != 3){
     if(i == 0){
-      //enregistrement
+      mainE("voix.wav");
     }
     if(i == 1){
       gtk_init(&argc, &argv);
