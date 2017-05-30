@@ -1,5 +1,5 @@
 //# define _XOPEN_SOURCE 500
-
+# include <fenv.h>
 # include <math.h>
 # include <stdlib.h>
 # include <stdio.h>
@@ -161,14 +161,26 @@ double forward_recursion(struct automate *aut, char **obs, long double **alpha)
 	struct state *cur2 = NULL;
 	long double res = 0;
 	*alpha = calloc(aut->nb_states,sizeof(long double));
+	long double *nk = calloc(aut->len,sizeof(long double));	
 
 	/* INITIALISATION */
 	for(int i = 0; i < aut->nb_states; ++i)
 	{
+		long double val = 1;
 		cur = search_state(aut, *aut->states_n);
 		alpha[0][i] = cur->p_init * get_obs_prob(cur,obs[0],aut->nb_k);
-		//printf("%Lf %Lf\n",cur->p_init,get_obs_prob(cur,obs[0],aut->nb_k));
+		for(int k = 0; k < 1; ++k) {
+			for(int j = 0; j < aut->nb_states; ++j){
+				cur = search_state(aut, aut->states_n[i]);
+				cur2 = search_state(aut,aut->states_n[j]);
+				nk[k] += cur->p_init * get_obs_prob(cur,obs[0],aut->nb_k); 
+			}
+			val *= (1 / nk[0]) * alpha[0][i];
+		}
+		alpha[0][i] = val;
+		printf("%Lf ",alpha[0][i]);
 	}
+	printf("\n");
 	/* RECURSION */
 	for(int k = 1; k < aut->len; ++k)
 	{
@@ -183,8 +195,19 @@ double forward_recursion(struct automate *aut, char **obs, long double **alpha)
 				val += alpha[k-1][i] * get_trans_prob(cur,aut->states_n[j],aut->nb_states);
 			}
 			alpha[k][j] = val * get_obs_prob(cur2, obs[k], aut->nb_k);
+			val = 0;
+			for(int k2 = 0; k2 < aut->nb_states; ++k2) {
+				cur = search_state(aut,aut->states_n[k2]);
+				for(int j2 = 0; j2 < aut->nb_states; ++j2) {
+					cur2 = search_state(aut,aut->states_n[j2]);
+					val += alpha[k-1][j2] * get_trans_prob(cur2,aut->states_n[k2],aut->nb_states)*
+					get_obs_prob(cur,obs[k],aut->nb_k);
+				}
+			}
+			alpha[k][j] = alpha[k][j] / val; 
+			printf("%Lf ",alpha[k][j]);
 		}
-		//printf("\n");
+		printf("\n");
 	}
 	/* END */
 	for(int i = 0; i < aut->nb_states; ++i)
@@ -217,7 +240,13 @@ double backward_recursion(struct automate *aut, char **obs, long double **beta)
 				val += beta[k+1][i] * get_trans_prob(cur2,aut->states_n[i],aut->nb_states) * 
 					get_obs_prob(cur,obs[k+1],aut->nb_k);
 			}
-			beta[k][j] = val;
+			long double nk = 0;
+			for(int k2 = k+1; k2 < aut->len; ++k2){
+				for(int i2 = 0; i2 < aut->nb_states; ++i2) {
+					nk += beta[k+1][i2];
+				}
+			}
+			beta[k][j] = val / nk;
 		}
 	}
 	beta[0] = calloc(aut->nb_states,sizeof(long double));
@@ -352,8 +381,8 @@ long double xi(struct automate *aut, char **obs, long double **alpha, long doubl
 			aut->nb_states) * get_obs_prob(cur_j,obs[k+1],aut->nb_k) *  beta[k+1][index_j];
 	/* DENOMINATEUR */ /* FIXME */
 
-	long double denominateur = 0;
-	for(int i = 0; i < aut->nb_states; ++i)
+	long double denominateur = beta[k][index_i];
+	/*for(int i = 0; i < aut->nb_states; ++i)
 	{
 		cur_i = search_state(aut,aut->states_n[i]);
 		for(int j = 0; j < aut->nb_states; ++j)
@@ -362,7 +391,7 @@ long double xi(struct automate *aut, char **obs, long double **alpha, long doubl
 			denominateur +=  alpha[k][i] * get_trans_prob(cur_i,aut->states_n[j],aut->nb_states) *
 				get_obs_prob(cur_j,obs[k+1],aut->nb_k) * beta[k+1][j];
 		}
-	}
+	}*/
 
 	return numerateur/denominateur;
 }
@@ -459,7 +488,7 @@ long double *prob_a, long double *prob_b)
 	}
 	//printf("prev: %Lf\nnew: %Lf\n",prev,new);
 	update_aut(aut,prob_init,prob_a,prob_b);
-	printf("%Lf\n",diff/3);
+	//printf("%Lf\n",diff/3);
 	return (diff/3) <= 1;
 }
 
@@ -711,6 +740,7 @@ long double *A, long double *B, int training_len)
 }
 void mainHMM(char **obs)
 {
+	feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
 	/* TEST 1
 	//-1 if no link
 	int nb_states = 2;
